@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:log4jdbc:mysql://127.0.0.1:3306/database_distribution?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    username: ENC#ZIZ0vdjV6HBQEGKi3FNIy9gYfs4GvaGBxHYj8MZfkC0ZtSFdGOUmgBOAT8y6uHYD
+    password: ENC#ktHZOyAxa09PASaXGnaWhEbn9VPaz8hs2T8TAHTZrHKn6HE1nxaxzlLhREqS3bvm
+  sql:
+    init:
+      schema-locations: classpath:sql/schema.sql
+      mode: always
+  application:
+    name: database-distribution
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+mybatis:
+  base-packages: com.tuituidan.openhub.mapper
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.tuituidan.openhub.bean.entity
+server:
+  port: 8084
+
+dictionary:
+  # 数据字典类型，xlsx-从excel中获取，database-从数据库中获取，需要配置查询sql，remote-远程获取，需要配置url
+  type: xlsx
