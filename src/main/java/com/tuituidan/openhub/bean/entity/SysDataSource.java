@@ -26,18 +26,18 @@ public class SysDataSource implements IEntity<SysDataSource, Long> {
     @Id
     private Long id;
 
+    private String name;
+
     private String host;
 
     private Integer port;
-
-    private String database;
 
     private String username;
 
     private String password;
 
     @Column(name = "server_id")
-    private Integer serverId;
+    private Long serverId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time")

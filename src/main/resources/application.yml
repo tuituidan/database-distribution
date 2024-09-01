@@ -10,9 +10,9 @@ spring:
       mode: always
   application:
     name: database-distribution
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
 mybatis:
   base-packages: com.tuituidan.openhub.mapper
   mapper-locations: classpath:mapper/*.xml
@@ -20,6 +20,13 @@ mybatis:
 server:
   port: 8084
 
+app:
+  binlog-enabled: false
+  table-struct-sql: select table_schema,table_name,column_name,ordinal_position from information_schema.columns where table_schema in ('{}') and table_name IN ('{}')
+  jdbc-url-template: jdbc:mysql://{}:{}/{}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
 dictionary:
   # 数据字典类型，xlsx-从excel中获取，database-从数据库中获取，需要配置查询sql，remote-远程获取，需要配置url
   type: xlsx
+thread-pool:
+  queue-size: 2000
+  thread-name-prefix: database-distribution

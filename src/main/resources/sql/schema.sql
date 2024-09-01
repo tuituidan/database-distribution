@@ -11,12 +11,12 @@ CREATE TABLE IF NOT EXISTS `sys_app` (
 
 CREATE TABLE IF NOT EXISTS `sys_datasource` (
     `id` bigint(20) NOT NULL COMMENT '主键',
-    `host` varchar(100) NOT NULL COMMENT '数据库连接',
+    `name` varchar(100) NOT NULL COMMENT '数据源名',
+    `host` varchar(100) NOT NULL COMMENT '数据库地址',
     `port` int(11) NOT NULL COMMENT '数据库端口',
-    `database` varchar(200) NOT NULL COMMENT '数据库名',
-    `username` varchar(200) NOT NULL COMMENT '数据库用户名',
-    `password` varchar(200) NOT NULL COMMENT '数据库密码',
-    `server_id` int(11) NOT NULL COMMENT '服务ID',
+    `username` varchar(100) NOT NULL COMMENT '数据库用户名',
+    `password` varchar(100) NOT NULL COMMENT '数据库密码',
+    `server_id` bigint(20) NOT NULL COMMENT '服务ID',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `sys_datasource` (
 CREATE TABLE IF NOT EXISTS `sys_database_config` (
     `id` bigint(20) NOT NULL COMMENT '主键',
     `datasource_id` bigint(20) NOT NULL COMMENT '数据源ID',
+    `database_name` varchar(100) NOT NULL COMMENT '数据库名',
     `table_name` varchar(100) NOT NULL COMMENT '表名',
     `primary_key` varchar(100) DEFAULT NULL COMMENT '主键名',
     `increment_key` varchar(100) DEFAULT NULL COMMENT '增量字段',
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `sys_database_config` (
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='数据源';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='数据库表配置';
 
 CREATE TABLE IF NOT EXISTS `sys_app_database_config` (
     `id` bigint(20) NOT NULL COMMENT '主键',
@@ -46,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `sys_app_database_config` (
 CREATE TABLE IF NOT EXISTS `sys_data_log` (
     `id` bigint(20) NOT NULL COMMENT '主键',
     `datasource_id` bigint(20) NOT NULL COMMENT '数据源ID',
-    `database` varchar(100) NOT NULL COMMENT '数据库名',
+    `database_name` varchar(100) NOT NULL COMMENT '数据库名',
     `table_name` varchar(100) NOT NULL COMMENT '表名',
     `primary_key` varchar(100) NOT NULL COMMENT '主键名',
     `oper_type` varchar(100) NOT NULL COMMENT '操作类型',
