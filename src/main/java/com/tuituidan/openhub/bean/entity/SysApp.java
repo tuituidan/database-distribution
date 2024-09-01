@@ -29,12 +29,13 @@ public class SysApp implements IEntity<SysApp, Long> {
     @Column(name = "app_key")
     private String appKey;
 
+    @Column(name = "app_secret")
+    private String appSecret;
+
     @Column(name = "app_name")
     private String appName;
 
     private String url;
-
-    private String header;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time")

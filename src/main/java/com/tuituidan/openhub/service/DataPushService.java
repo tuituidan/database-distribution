@@ -28,6 +28,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -78,13 +81,18 @@ public class DataPushService implements ApplicationRunner {
             PostTableData postData = new PostTableData().setDatas(datas)
                     .setTableName(configView.getTableName())
                     .setDatabaseName(configView.getDatabaseName())
-                    .setType(type).setPrimaryKey(configView.getPrimaryKey());
+                    .setType(type).setTableStruct(configView.getTableStruct())
+                    .setPrimaryKey(configView.getPrimaryKey());
             System.out.println(JSONObject.toJSONString(postData));
             List<SysApp> sysApps = databaseAppConfigMap.get(configView.getId());
             for (SysApp sysApp : sysApps) {
                 CompletableUtils.runAsync(() -> {
-                    String result = restTemplate.postForObject(sysApp.getUrl(), postData, String.class);
-                    System.out.println("发送结果：" + result);
+                    postData.setAppKey(sysApp.getAppKey());
+                    ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
+                                    .header("", "")
+                            .acceptCharset(StandardCharsets.UTF_8)
+                            .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
+                    System.out.println("发送结果：" + JSONObject.toJSONString(response.getBody()));
                 });
             }
         });

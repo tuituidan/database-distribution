@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS `sys_app` (
     `id` bigint(20) NOT NULL COMMENT '主键',
     `app_key` varchar(100) NOT NULL COMMENT '应用标识',
+    `app_secret` varchar(100) NOT NULL COMMENT '应用秘钥',
     `app_name` varchar(200) NOT NULL COMMENT '应用名称',
     `url` varchar(200) DEFAULT NULL COMMENT '地址',
-    `header` varchar(4000) DEFAULT NULL COMMENT '请求头',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE

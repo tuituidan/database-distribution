@@ -16,10 +16,10 @@ public class SysAppParam {
 
     private String appKey;
 
+    private String appSecret;
+
     private String appName;
 
     private String url;
-
-    private String header;
 
 }
