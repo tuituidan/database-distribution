@@ -78,7 +78,6 @@ public class BinlogAnalyse implements ApplicationRunner {
     private void createBinaryLogClient(SysDataSource dataSource, List<SysDatabaseConfig> configs) {
         BinaryLogClient client = new BinaryLogClient(dataSource.getHost(),
                 dataSource.getPort(),
-                "mysql",
                 dataSource.getUsername(),
                 dataSource.getPassword());
         client.setServerId(dataSource.getServerId());

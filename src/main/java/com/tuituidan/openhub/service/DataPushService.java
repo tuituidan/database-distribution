@@ -119,12 +119,12 @@ public class DataPushService implements ApplicationRunner {
             }
         }
         if (data instanceof BitSet) {
-            return ((BitSet) data).cardinality();
+            return ((BitSet) data).get(0);
         }
         if (data instanceof Timestamp) {
             return ((Timestamp) data).toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         }
-        if (data instanceof java.sql.Date) {
+        if (data instanceof java.sql.Date || data instanceof java.sql.Time) {
             return data.toString();
         }
         if (data instanceof Date) {
