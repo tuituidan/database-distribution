@@ -1,6 +1,7 @@
 package com.tuituidan.openhub.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
@@ -9,6 +10,8 @@ import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.http.MediaType;
@@ -55,6 +59,9 @@ public class DataPushService implements ApplicationRunner {
     @Resource
     private RestTemplate restTemplate;
 
+    @Resource
+    private Cache<String, String> appTokenCache;
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         Map<Long, SysApp> appMap = sysAppMapper.selectAll().stream().collect(Collectors.toMap(SysApp::getId,
@@ -78,24 +85,37 @@ public class DataPushService implements ApplicationRunner {
     public void analyse(SysDatabaseConfigView configView, String type, List<Serializable[]> rows) {
         CompletableUtils.runAsync(() -> {
             List<JSONObject> datas = buildTable(configView.getTableStruct(), rows);
-            PostTableData postData = new PostTableData().setDatas(datas)
-                    .setTableName(configView.getTableName())
-                    .setDatabaseName(configView.getDatabaseName())
-                    .setType(type).setTableStruct(configView.getTableStruct())
+            PostTableData postData = new PostTableData().setDataList(datas)
+                    .setTable(configView.getTableName())
+                    .setDatabase(configView.getDatabaseName())
+                    .setType(type)
+                    .setColumns(configView.getTableStruct().stream()
+                            .map(TableStruct::getColumnName).collect(Collectors.toList()))
                     .setPrimaryKey(configView.getPrimaryKey());
             System.out.println(JSONObject.toJSONString(postData));
-            List<SysApp> sysApps = databaseAppConfigMap.get(configView.getId());
-            for (SysApp sysApp : sysApps) {
-                CompletableUtils.runAsync(() -> {
-                    postData.setAppKey(sysApp.getAppKey());
-                    ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
-                                    .header("", "")
-                            .acceptCharset(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
-                    System.out.println("发送结果：" + JSONObject.toJSONString(response.getBody()));
-                });
-            }
+            push(configView, postData);
         });
+    }
+
+    private void push(SysDatabaseConfigView configView, PostTableData postData) {
+        List<SysApp> sysApps = databaseAppConfigMap.get(configView.getId());
+        for (SysApp sysApp : sysApps) {
+            CompletableUtils.runAsync(() -> {
+                ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
+                        .header("appkey", sysApp.getAppKey())
+                        .header("Authorization", getToken(sysApp))
+                        .acceptCharset(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
+                System.out.println("发送结果：" + JSONObject.toJSONString(response.getBody()));
+            });
+        }
+    }
+
+    private String getToken(SysApp sysApp) {
+        return appTokenCache.get(sysApp.getAppKey(), key -> Jwts.builder().setSubject(key)
+                .signWith(SignatureAlgorithm.HS512, sysApp.getAppSecret())
+                .setExpiration(DateUtils.addMinutes(new Date(), 30))
+                .compact());
     }
 
     private List<JSONObject> buildTable(List<TableStruct> tableStructs, List<Serializable[]> rows) {

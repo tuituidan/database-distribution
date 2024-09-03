@@ -1,7 +1,6 @@
 package com.tuituidan.openhub.bean.dto;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.tuituidan.openhub.bean.vo.TableStruct;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,18 +18,16 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class PostTableData {
 
-    private String appKey;
+    private String database;
 
-    private String databaseName;
-
-    private String tableName;
+    private String table;
 
     private String primaryKey;
 
     private String type;
 
-    private List<TableStruct> tableStruct;
+    private List<String> columns;
 
-    private List<JSONObject> datas;
+    private List<JSONObject> dataList;
 
 }
