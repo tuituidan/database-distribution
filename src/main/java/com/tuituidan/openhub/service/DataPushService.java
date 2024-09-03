@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
@@ -32,10 +33,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -110,10 +113,13 @@ public class DataPushService {
                     .acceptCharset(StandardCharsets.UTF_8)
                     .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
             pushLog.setResponse(response.getBody());
-            pushLog.setStatus(response.getStatusCodeValue() + "");
-        } catch (Exception ex) {
+            pushLog.setStatus(Objects.toString(response.getStatusCodeValue()));
+        } catch (HttpServerErrorException ex) {
             pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));
-            pushLog.setStatus("600");
+            pushLog.setStatus(Objects.toString(ex.getStatusCode().value()));
+        } catch (Exception ex) {
+            pushLog.setResponse("未知异常：" + StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 3990));
+            pushLog.setStatus(Objects.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
         pushLog.setCostTime(System.currentTimeMillis() - startTime);
         sysPushLogMapper.insert(pushLog);

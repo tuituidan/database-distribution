@@ -14,6 +14,7 @@ public class DatabaseDistributionApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC+8"));
-       SpringApplication.run(DatabaseDistributionApplication.class, args);
+        SpringApplication.run(DatabaseDistributionApplication.class, args);
     }
+
 }
