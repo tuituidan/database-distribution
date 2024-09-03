@@ -3,17 +3,27 @@ package com.tuituidan.openhub.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
+import com.tuituidan.openhub.bean.entity.SysApp;
+import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
+import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -32,10 +42,19 @@ import org.springframework.util.Assert;
 public class DatabaseConfigService implements ApplicationRunner {
 
     @Resource
-    private Cache<String, SysDatabaseConfigView> databaseConfigViewCache;
+    private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
+
+    @Resource
+    private SysAppMapper sysAppMapper;
 
     @Resource
     private Cache<String, SysDatabaseConfig> databaseConfigCache;
+
+    @Resource
+    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
+
+    @Resource
+    private Cache<Long, List<SysApp>> databaseAppConfigCache;
 
     @Resource
     private AppPropertiesConfig appPropertiesConfig;
@@ -52,6 +71,20 @@ public class DatabaseConfigService implements ApplicationRunner {
         for (SysDatabaseConfig config : configs) {
             databaseConfigCache.put(config.getDatabaseName() + config.getTableName(), config);
         }
+
+        Map<Long, SysApp> appMap = sysAppMapper.selectAll().stream().collect(Collectors.toMap(SysApp::getId,
+                Function.identity()));
+        List<SysAppDatabaseConfig> configList = sysAppDatabaseConfigMapper.selectAll();
+        if (CollectionUtils.isEmpty(configList)) {
+            return;
+        }
+        Map<Long, Set<Long>> configMap =
+                configList.stream().collect(Collectors.groupingBy(SysAppDatabaseConfig::getDatabaseConfigId,
+                        Collectors.mapping(SysAppDatabaseConfig::getAppId, Collectors.toSet())));
+        for (Entry<Long, Set<Long>> entry : configMap.entrySet()) {
+            databaseAppConfigCache.put(entry.getKey(), entry.getValue().stream()
+                    .map(appMap::get).collect(Collectors.toList()));
+        }
     }
 
     /**
@@ -66,15 +99,16 @@ public class DatabaseConfigService implements ApplicationRunner {
         SysDatabaseConfig exist = sysDatabaseConfigMapper.selectOne(search);
         if (id == null) {
             Assert.isNull(exist, "已存在相同配置（数据源、数据库名、表名一致）");
-            sysDatabaseConfigMapper.insertSelective(BeanExtUtils.convert(param, SysDatabaseConfig::new));
+            exist = BeanExtUtils.convert(param, SysDatabaseConfig::new);
+            sysDatabaseConfigMapper.insertSelective(exist);
         } else {
             Assert.isTrue(id.equals(exist.getId()), "已存在相同配置（数据源、数据库名、表名一致）");
             BeanExtUtils.copyNotNullProperties(param, exist);
             sysDatabaseConfigMapper.updateByPrimaryKeySelective(exist);
         }
         String cacheKey = param.getDatabaseName() + param.getTableName();
-        databaseConfigCache.invalidate(cacheKey);
-        databaseConfigViewCache.invalidate(cacheKey);
+        databaseConfigCache.put(cacheKey, exist);
+        databaseConfigViewCache.invalidate(exist.getId());
     }
 
     /**
@@ -88,7 +122,7 @@ public class DatabaseConfigService implements ApplicationRunner {
         sysDatabaseConfigMapper.deleteByPrimaryKey(id);
         String cacheKey = config.getDatabaseName() + config.getTableName();
         databaseConfigCache.invalidate(cacheKey);
-        databaseConfigViewCache.invalidate(cacheKey);
+        databaseConfigViewCache.invalidate(id);
     }
 
     /**
@@ -106,17 +140,23 @@ public class DatabaseConfigService implements ApplicationRunner {
         if (config == null) {
             return;
         }
-        dataPushService.analyse(databaseConfigViewCache.get(cacheKey,
-                k -> getDatabaseConfigView(jdbcTemplate, config)), type, rows);
+        List<SysApp> appList = databaseAppConfigCache.getIfPresent(config.getId());
+        if (CollectionUtils.isEmpty(appList)) {
+            return;
+        }
+        dataPushService.analyse(databaseConfigViewCache.get(config.getId(),
+                k -> getDatabaseConfigView(jdbcTemplate, config, appList)), type, rows);
     }
 
-    private SysDatabaseConfigView getDatabaseConfigView(JdbcTemplate jdbcTemplate, SysDatabaseConfig config) {
+    private SysDatabaseConfigView getDatabaseConfigView(JdbcTemplate jdbcTemplate,
+            SysDatabaseConfig config, List<SysApp> appList) {
         SysDatabaseConfigView configView = BeanExtUtils.convert(config, SysDatabaseConfigView::new);
         configView.setTableStruct(jdbcTemplate.query(
                 StringExtUtils.format(appPropertiesConfig.getTableStructSql(),
                         config.getDatabaseName(), config.getTableName()),
                 new BeanPropertyRowMapper<>(TableStruct.class)));
         configView.getTableStruct().sort(Comparator.comparingInt(TableStruct::getOrdinalPosition));
+        configView.setAppList(appList);
         return configView;
     }
 

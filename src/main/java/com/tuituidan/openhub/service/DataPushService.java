@@ -4,11 +4,13 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
 import com.tuituidan.openhub.bean.entity.SysApp;
-import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
+import com.tuituidan.openhub.bean.entity.SysDataLog;
+import com.tuituidan.openhub.bean.entity.SysPushLog;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
-import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
-import com.tuituidan.openhub.mapper.SysAppMapper;
+import com.tuituidan.openhub.mapper.SysDataLogMapper;
+import com.tuituidan.openhub.mapper.SysPushLogMapper;
+import com.tuituidan.tresdin.mybatis.util.SnowFlake;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,21 +19,19 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -46,15 +46,7 @@ import org.springframework.web.client.RestTemplate;
  * @date 2024/9/1
  */
 @Service
-public class DataPushService implements ApplicationRunner {
-
-    @Resource
-    private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
-
-    @Resource
-    private SysAppMapper sysAppMapper;
-
-    private final Map<Long, List<SysApp>> databaseAppConfigMap = new HashMap<>();
+public class DataPushService {
 
     @Resource
     private RestTemplate restTemplate;
@@ -62,18 +54,11 @@ public class DataPushService implements ApplicationRunner {
     @Resource
     private Cache<String, String> appTokenCache;
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        Map<Long, SysApp> appMap = sysAppMapper.selectAll().stream().collect(Collectors.toMap(SysApp::getId,
-                Function.identity()));
-        List<SysAppDatabaseConfig> configList = sysAppDatabaseConfigMapper.selectAll();
-        for (SysAppDatabaseConfig config : configList) {
-            List<SysApp> list = databaseAppConfigMap.getOrDefault(config.getDatabaseConfigId(),
-                    new ArrayList<>());
-            list.add(appMap.get(config.getAppId()));
-            databaseAppConfigMap.put(config.getDatabaseConfigId(), list);
-        }
-    }
+    @Resource
+    private SysDataLogMapper sysDataLogMapper;
+
+    @Resource
+    private SysPushLogMapper sysPushLogMapper;
 
     /**
      * analyse
@@ -85,30 +70,53 @@ public class DataPushService implements ApplicationRunner {
     public void analyse(SysDatabaseConfigView configView, String type, List<Serializable[]> rows) {
         CompletableUtils.runAsync(() -> {
             List<JSONObject> datas = buildTable(configView.getTableStruct(), rows);
-            PostTableData postData = new PostTableData().setDataList(datas)
-                    .setTable(configView.getTableName())
-                    .setDatabase(configView.getDatabaseName())
-                    .setType(type)
-                    .setColumns(configView.getTableStruct().stream()
-                            .map(TableStruct::getColumnName).collect(Collectors.toList()))
-                    .setPrimaryKey(configView.getPrimaryKey());
-            System.out.println(JSONObject.toJSONString(postData));
-            push(configView, postData);
+            SysDataLog dataLog = new SysDataLog()
+                    .setId(SnowFlake.newId())
+                    .setDatasourceId(configView.getDatasourceId())
+                    .setDatabaseConfigId(configView.getId())
+                    .setDatabaseName(configView.getDatabaseName())
+                    .setTableName(configView.getTableName())
+                    .setPrimaryKey(configView.getPrimaryKey())
+                    .setOperType(type)
+                    .setDataLog(JSONObject.toJSONString(datas));
+            sysDataLogMapper.insert(dataLog);
+            pushToApps(dataLog, configView, datas);
         });
     }
 
-    private void push(SysDatabaseConfigView configView, PostTableData postData) {
-        List<SysApp> sysApps = databaseAppConfigMap.get(configView.getId());
-        for (SysApp sysApp : sysApps) {
-            CompletableUtils.runAsync(() -> {
-                ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
-                        .header("appkey", sysApp.getAppKey())
-                        .header("Authorization", getToken(sysApp))
-                        .acceptCharset(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
-                System.out.println("发送结果：" + JSONObject.toJSONString(response.getBody()));
-            });
+    private void pushToApps(SysDataLog dataLog, SysDatabaseConfigView configView, List<JSONObject> datas) {
+        PostTableData postData = new PostTableData().setDataList(datas)
+                .setTable(dataLog.getTableName())
+                .setDatabase(dataLog.getDatabaseName())
+                .setType(dataLog.getOperType())
+                .setColumns(configView.getTableStruct().stream()
+                        .map(TableStruct::getColumnName).collect(Collectors.toList()))
+                .setPrimaryKey(dataLog.getPrimaryKey());
+        for (SysApp sysApp : configView.getAppList()) {
+            CompletableUtils.runAsync(() -> pushToApp(sysApp, dataLog, postData));
         }
+    }
+
+    private void pushToApp(SysApp sysApp, SysDataLog dataLog, PostTableData postData) {
+        SysPushLog pushLog = new SysPushLog();
+        long startTime = System.currentTimeMillis();
+        pushLog.setAppId(sysApp.getId())
+                .setPushTime(LocalDateTime.now())
+                .setDataLogId(dataLog.getId());
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
+                    .header("appkey", sysApp.getAppKey())
+                    .header("Authorization", getToken(sysApp))
+                    .acceptCharset(StandardCharsets.UTF_8)
+                    .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
+            pushLog.setResponse(response.getBody());
+            pushLog.setStatus(response.getStatusCodeValue() + "");
+        } catch (Exception ex) {
+            pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));
+            pushLog.setStatus("600");
+        }
+        pushLog.setCostTime(System.currentTimeMillis() - startTime);
+        sysPushLogMapper.insert(pushLog);
     }
 
     private String getToken(SysApp sysApp) {
