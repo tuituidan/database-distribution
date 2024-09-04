@@ -4,6 +4,7 @@ import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.service.DatabaseConfigService;
 import com.tuituidan.tresdin.consts.TresdinConsts;
+import com.tuituidan.tresdin.datatranslate.annotation.DataTranslate;
 import java.util.List;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,6 +36,7 @@ public class DatabaseConfigController {
      * @return List
      */
     @GetMapping
+    @DataTranslate
     public List<SysDatabaseConfig> select(SysDatabaseConfigParam param) {
         return databaseConfigService.select(param);
     }

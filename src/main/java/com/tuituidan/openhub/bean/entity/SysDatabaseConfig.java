@@ -1,6 +1,7 @@
 package com.tuituidan.openhub.bean.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuituidan.tresdin.datatranslate.translator.dict.DictType;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -45,6 +46,7 @@ public class SysDatabaseConfig implements IEntity<SysDatabaseConfig, Long> {
     private String incrementKey;
 
     @Column(name = "increment_type")
+    @DictType("2000000001")
     private String incrementType;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

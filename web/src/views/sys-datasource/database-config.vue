@@ -21,20 +21,14 @@
       highlight-current-row
       ref="dataTable"
       v-loading="loading"
-      @row-click="rowClickHandler"
-      @current-change="currentRowChange"
       :data="dataList">
-      <el-table-column label="选择" width="50" align="center">
-        <template slot-scope="scope">
-          <el-radio v-model="selectRow" :label="scope.row.id"><i></i></el-radio>
-        </template>
-      </el-table-column>
-      <el-table-column label="数据源名" align="center" prop="name" :show-overflow-tooltip="true"/>
-      <el-table-column label="地址" align="center" prop="host" :show-overflow-tooltip="true"/>
-      <el-table-column label="端口" align="center" prop="port" :show-overflow-tooltip="true"/>
-      <el-table-column label="用户名" align="center" prop="username" :show-overflow-tooltip="true"/>
-      <el-table-column label="密码" align="center" prop="password" :show-overflow-tooltip="true"/>
-      <el-table-column label="服务ID" align="center" prop="serverId" :show-overflow-tooltip="true"/>
+      <el-table-column label="序号" type="index" width="50" align="center"/>
+      <el-table-column label="数据库名" align="center" prop="databaseName" :show-overflow-tooltip="true"/>
+      <el-table-column label="表名" align="center" prop="tableName" :show-overflow-tooltip="true"/>
+      <el-table-column label="表说明" align="center" prop="tableComment" :show-overflow-tooltip="true"/>
+      <el-table-column label="主键名" align="center" prop="primaryKey" :show-overflow-tooltip="true"/>
+      <el-table-column label="增量字段" align="center" prop="incrementKey" :show-overflow-tooltip="true"/>
+      <el-table-column label="增量字段类型" align="center" prop="incrementTypeText" :show-overflow-tooltip="true"/>
       <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -73,31 +67,17 @@ export default {
     };
   },
   mounted() {
-    this.getList();
   },
   methods: {
-    getList() {
+    loadConfig(row) {
       this.loading = true;
-      this.$http.get(`/api/v1/datasource`)
+      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: row.id}})
         .then(res => {
           this.dataList = res;
-          if (this.dataList.length > 0) {
-            const firstItem = this.dataList[0];
-            this.rowClickHandler(firstItem);
-            this.currentRowChange(firstItem);
-          }
         })
         .finally(() => {
           this.loading = false;
         });
-    },
-    rowClickHandler(row) {
-      this.selectRow = row.id;
-    },
-    currentRowChange(row) {
-      if (row) {
-        this.$emit('rowChange', row);
-      }
     },
     /** 修改按钮操作 */
     openEditDialog(row) {

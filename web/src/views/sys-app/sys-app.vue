@@ -29,12 +29,10 @@
           <el-radio v-model="selectRow" :label="scope.row.id"><i></i></el-radio>
         </template>
       </el-table-column>
-      <el-table-column label="数据源名" align="center" prop="name" :show-overflow-tooltip="true"/>
-      <el-table-column label="地址" align="center" prop="host" :show-overflow-tooltip="true"/>
-      <el-table-column label="端口" align="center" prop="port" :show-overflow-tooltip="true"/>
-      <el-table-column label="用户名" align="center" prop="username" :show-overflow-tooltip="true"/>
-      <el-table-column label="密码" align="center" prop="password" :show-overflow-tooltip="true"/>
-      <el-table-column label="服务ID" align="center" prop="serverId" :show-overflow-tooltip="true"/>
+      <el-table-column label="应用标识" align="center" prop="appKey" :show-overflow-tooltip="true"/>
+      <el-table-column label="应用名称" align="center" prop="appName" :show-overflow-tooltip="true"/>
+      <el-table-column label="应用秘钥" align="center" prop="appSecret" :show-overflow-tooltip="true"/>
+      <el-table-column label="推送地址" align="center" prop="url" :show-overflow-tooltip="true"/>
       <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -54,15 +52,15 @@
         </template>
       </el-table-column>
     </el-table>
-    <data-source-edit ref="refDataSourceEdit" @refresh="getList"></data-source-edit>
+    <sys-app-edit ref="refDataSourceEdit" @refresh="getList"></sys-app-edit>
   </div>
 </template>
 
 <script>
 export default {
-  name: "data-source-list",
+  name: "sys-app-list",
   components: {
-    'data-source-edit': () => import('./data-source-edit')
+    'sys-app-edit': () => import('./sys-app-edit')
   },
   data() {
     return {
@@ -78,7 +76,7 @@ export default {
   methods: {
     getList() {
       this.loading = true;
-      this.$http.get(`/api/v1/datasource`)
+      this.$http.get(`/api/v1/sys_app`)
         .then(res => {
           this.dataList = res;
           if (this.dataList.length > 0) {
