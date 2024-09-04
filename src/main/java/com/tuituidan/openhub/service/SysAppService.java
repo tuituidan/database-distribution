@@ -3,9 +3,6 @@ package com.tuituidan.openhub.service;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.mapper.SysAppMapper;
-import com.tuituidan.tresdin.mybatis.QueryHelper;
-import com.tuituidan.tresdin.mybatis.bean.PageParam;
-import com.tuituidan.tresdin.page.PageData;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
 import javax.annotation.Resource;
@@ -26,13 +23,12 @@ public class SysAppService {
     private SysAppMapper sysAppMapper;
 
     /**
-     * selectPage
+     * selectAll
      *
-     * @param pageParam pageParam
-     * @return PageData
+     * @return List
      */
-    public PageData<List<SysApp>> selectPage(PageParam pageParam) {
-        return QueryHelper.queryPage(pageParam.getOffset(), pageParam.getLimit(), sysAppMapper::selectAll);
+    public List<SysApp> selectAll() {
+        return sysAppMapper.selectAll();
     }
 
     /**

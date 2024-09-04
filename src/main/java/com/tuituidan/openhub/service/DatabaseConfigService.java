@@ -88,6 +88,16 @@ public class DatabaseConfigService implements ApplicationRunner {
     }
 
     /**
+     * select
+     *
+     * @param param param
+     * @return List
+     */
+    public List<SysDatabaseConfig> select(SysDatabaseConfigParam param) {
+        return sysDatabaseConfigMapper.select(BeanExtUtils.convert(param, SysDatabaseConfig::new));
+    }
+
+    /**
      * save
      *
      * @param id id

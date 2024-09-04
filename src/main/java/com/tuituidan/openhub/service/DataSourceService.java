@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -49,6 +50,9 @@ public class DataSourceService implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        if (BooleanUtils.isNotTrue(appPropertiesConfig.getBinlogEnabled())) {
+            return;
+        }
         List<SysDataSource> dataSourceList = selectAll();
         for (SysDataSource dataSource : dataSourceList) {
             CompletableUtils.runAsync(() -> createBinaryLogClient(dataSource));

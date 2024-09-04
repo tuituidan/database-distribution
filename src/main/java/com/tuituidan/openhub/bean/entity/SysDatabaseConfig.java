@@ -35,6 +35,9 @@ public class SysDatabaseConfig implements IEntity<SysDatabaseConfig, Long> {
     @Column(name = "table_name")
     private String tableName;
 
+    @Column(name = "table_comment")
+    private String tableComment;
+
     @Column(name = "primary_key")
     private String primaryKey;
 
