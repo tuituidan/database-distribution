@@ -8,8 +8,10 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.tuituidan.openhub.bean.dto.SysDataSourceParam;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
+import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
+import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
@@ -17,15 +19,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
@@ -44,6 +49,9 @@ public class DataSourceService implements ApplicationRunner {
 
     @Resource
     private DatabaseConfigService databaseConfigService;
+
+    @Resource
+    private SysDatabaseConfigMapper sysDatabaseConfigMapper;
 
     @Resource
     private AppPropertiesConfig appPropertiesConfig;
@@ -128,17 +136,22 @@ public class DataSourceService implements ApplicationRunner {
      * @param param param
      */
     public void save(Long id, SysDataSourceParam param) {
+        checkUnique(id, param);
+        SysDataSource saveItem = BeanExtUtils.convert(param, SysDataSource::new);
+        if (id == null) {
+            sysDataSourceMapper.insertSelective(saveItem);
+            return;
+        }
+        saveItem.setId(id);
+        sysDataSourceMapper.updateByPrimaryKeySelective(saveItem);
+    }
+
+    private void checkUnique(Long id, SysDataSourceParam param) {
         SysDataSource search = new SysDataSource();
         BeanExtUtils.copyProperties(param, search, "host", "port", "username");
         SysDataSource exist = sysDataSourceMapper.selectOne(search);
-        if (id == null) {
-            Assert.isNull(exist, "已存在相同数据源（数据源地址、端口、数据库账号一致）");
-            sysDataSourceMapper.insertSelective(BeanExtUtils.convert(param, SysDataSource::new));
-            return;
-        }
-        Assert.isTrue(id.equals(exist.getId()), "已存在相同数据源（数据源地址、端口、数据库账号一致）");
-        BeanExtUtils.copyNotNullProperties(param, exist);
-        sysDataSourceMapper.updateByPrimaryKeySelective(exist);
+        Assert.isTrue(Objects.isNull(exist) || Objects.equals(id, exist.getId()),
+                "已存在相同数据源（数据源地址、端口、数据库账号一致）");
     }
 
     /**
@@ -146,7 +159,10 @@ public class DataSourceService implements ApplicationRunner {
      *
      * @param id id
      */
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
+        List<SysDatabaseConfig> configs = sysDatabaseConfigMapper.select(new SysDatabaseConfig().setDatasourceId(id));
+        Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
     }
 

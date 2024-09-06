@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -104,21 +105,25 @@ public class DatabaseConfigService implements ApplicationRunner {
      * @param param param
      */
     public void save(Long id, SysDatabaseConfigParam param) {
+        checkUnique(id, param);
+        SysDatabaseConfig saveItem = BeanExtUtils.convert(param, SysDatabaseConfig::new);
+        if (id == null) {
+            sysDatabaseConfigMapper.insertSelective(saveItem);
+        } else {
+            saveItem.setId(id);
+            sysDatabaseConfigMapper.updateByPrimaryKeySelective(saveItem);
+        }
+        String cacheKey = param.getDatabaseName() + param.getTableName();
+        databaseConfigCache.put(cacheKey, saveItem);
+        databaseConfigViewCache.invalidate(saveItem.getId());
+    }
+
+    private void checkUnique(Long id, SysDatabaseConfigParam param) {
         SysDatabaseConfig search = new SysDatabaseConfig();
         BeanExtUtils.copyProperties(param, search, "datasourceId", "databaseName", "tableName");
         SysDatabaseConfig exist = sysDatabaseConfigMapper.selectOne(search);
-        if (id == null) {
-            Assert.isNull(exist, "已存在相同配置（数据源、数据库名、表名一致）");
-            exist = BeanExtUtils.convert(param, SysDatabaseConfig::new);
-            sysDatabaseConfigMapper.insertSelective(exist);
-        } else {
-            Assert.isTrue(id.equals(exist.getId()), "已存在相同配置（数据源、数据库名、表名一致）");
-            BeanExtUtils.copyNotNullProperties(param, exist);
-            sysDatabaseConfigMapper.updateByPrimaryKeySelective(exist);
-        }
-        String cacheKey = param.getDatabaseName() + param.getTableName();
-        databaseConfigCache.put(cacheKey, exist);
-        databaseConfigViewCache.invalidate(exist.getId());
+        Assert.isTrue(Objects.isNull(exist) || Objects.equals(id, exist.getId()),
+                "已存在相同配置（数据源、数据库名、表名一致）");
     }
 
     /**

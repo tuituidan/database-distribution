@@ -1,7 +1,7 @@
 <template>
   <el-dialog :title="title" :visible.sync="show"
              :close-on-click-modal="false"
-             width="600px" append-to-body>
+             width="480px" append-to-body>
     <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
       <el-form-item label="数据源名" prop="name">
         <el-input v-model="form.name" placeholder="请输入数据源名" maxlength="100" v-trim/>
@@ -23,11 +23,11 @@
         <el-input v-model="form.password" show-password placeholder="请输入数据库密码" maxlength="100" v-trim/>
       </el-form-item>
       <el-form-item label="服务ID" prop="serverId">
-        <el-input v-model="form.serverId"
+        <el-input-number v-model="form.serverId"
                   :min="1"
                   step-strictly
                   :max="65535"
-                  placeholder="请输入服务ID" maxlength="30" v-trim/>
+                  placeholder="请输入服务ID" maxlength="100" v-trim/>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -77,8 +77,15 @@ export default {
     }
   },
   methods: {
-    open() {
+    open(row) {
       this.resetForm();
+      if(row){
+        this.form = {...row};
+        this.title = '编辑数据源';
+      }else{
+        this.title = '新增数据源';
+      }
+
       this.show = true;
     },
     resetForm() {
@@ -95,9 +102,9 @@ export default {
       })
     },
     submitForm() {
-      this.$refs["form"].validate(valid => {
+      this.$refs.form.validate(valid => {
         if (valid) {
-          this.$http.save('/api/v1/project', {...this.form})
+          this.$http.save('/api/v1/datasource', {...this.form})
             .then(() => {
               this.$modal.msgSuccess('保存成功');
               this.show = false;

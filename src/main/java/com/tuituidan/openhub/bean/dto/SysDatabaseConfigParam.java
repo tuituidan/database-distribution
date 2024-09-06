@@ -22,6 +22,8 @@ public class SysDatabaseConfigParam {
 
     private String tableName;
 
+    private String tableComment;
+
     private String primaryKey;
 
     private String incrementKey;

@@ -48,7 +48,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <data-source-edit ref="refDataSourceEdit" @refresh="getList"></data-source-edit>
+    <database-config-edit ref="refDatabaseConfigEdit" @refresh="loadConfig"></database-config-edit>
   </div>
 </template>
 
@@ -56,7 +56,7 @@
 export default {
   name: "data-source-list",
   components: {
-    'data-source-edit': () => import('./data-source-edit')
+    'database-config-edit': () => import('./database-config-edit')
   },
   data() {
     return {
@@ -64,14 +64,18 @@ export default {
       loading: false,
       dataList: [],
       selectRow: '',
+      datasourceId: '',
     };
   },
   mounted() {
   },
   methods: {
     loadConfig(row) {
+      if (row) {
+        this.datasourceId = row.id;
+      }
       this.loading = true;
-      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: row.id}})
+      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: this.datasourceId}})
         .then(res => {
           this.dataList = res;
         })
@@ -81,15 +85,15 @@ export default {
     },
     /** 修改按钮操作 */
     openEditDialog(row) {
-      this.$refs.refDataSourceEdit.open(row);
+      this.$refs.refDatabaseConfigEdit.open(this.datasourceId, row);
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      this.$modal.confirm(`是否确认删除【${row.roleName}】数据项？`)
+      this.$modal.confirm(`是否确认删除【${row.databaseName}-${row.tableName}】数据项？`)
         .then(() => {
-          return this.$http.delete(`/api/v1/project/${row.id}`);
+          return this.$http.delete(`/api/v1/database_config/${row.id}`);
         }).then(() => {
-        this.getList();
+        this.loadConfig();
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {
       });

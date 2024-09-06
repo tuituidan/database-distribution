@@ -13,11 +13,12 @@
       </div>
       <el-tree
         ref="categoryTree"
-        :data="categories"
+        default-expand-all
+        :data="treeList"
         :props="{label: 'name'}"
         node-key="id"
         highlight-current
-        :default-checked-keys="roleDetail.categoryIds"
+        :default-checked-keys="checkedIds"
         show-checkbox>
       </el-tree>
     </el-card>
@@ -31,7 +32,8 @@ export default {
     return {
       // 遮罩层
       loading: false,
-      categories: [],
+      treeList: [],
+      checkedIds: [],
       roleDetail: {
         categoryIds: [],
       },
@@ -39,13 +41,24 @@ export default {
     };
   },
   mounted() {
+    this.loadTree();
   },
   methods: {
+    loadTree(){
+      this.loading = true;
+      this.$http.get(`/api/v1/sys_app/database_config/tree`)
+        .then(res => {
+          this.treeList = res;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
     loadConfig(row) {
       this.loading = true;
-      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: row.id}})
+      this.$http.get(`/api/v1/sys_app/${row.id}/database_config`)
         .then(res => {
-          this.dataList = res;
+          this.checkedIds = res;
         })
         .finally(() => {
           this.loading = false;

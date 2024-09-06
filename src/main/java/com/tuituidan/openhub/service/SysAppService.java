@@ -5,6 +5,7 @@ import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -38,15 +39,20 @@ public class SysAppService {
      * @param param param
      */
     public void save(Long id, SysAppParam param) {
-        SysApp exist = sysAppMapper.selectOne(new SysApp().setAppKey(param.getAppKey()));
+        checkUnique(id, param);
+        SysApp saveItem = BeanExtUtils.convert(param, SysApp::new);
         if (id == null) {
-            Assert.isNull(exist, "已存在相同应用标识的应用");
-            sysAppMapper.insertSelective(BeanExtUtils.convert(param, SysApp::new));
+            sysAppMapper.insertSelective(saveItem);
             return;
         }
-        Assert.isTrue(id.equals(exist.getId()), "已存在相同应用标识的应用");
-        BeanExtUtils.copyNotNullProperties(param, exist);
-        sysAppMapper.updateByPrimaryKeySelective(exist);
+        saveItem.setId(id);
+        sysAppMapper.updateByPrimaryKeySelective(saveItem);
+    }
+
+    private void checkUnique(Long id, SysAppParam param) {
+        SysApp exist = sysAppMapper.selectOne(new SysApp().setAppKey(param.getAppKey()));
+        Assert.isTrue(Objects.isNull(exist) || Objects.equals(id, exist.getId()),
+                "已存在相同应用标识的应用");
     }
 
     /**

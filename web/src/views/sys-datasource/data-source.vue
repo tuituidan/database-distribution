@@ -105,9 +105,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      this.$modal.confirm(`是否确认删除【${row.roleName}】数据项？`)
+      this.$modal.confirm(`是否确认删除【${row.name}】数据项？`)
         .then(() => {
-          return this.$http.delete(`/api/v1/project/${row.id}`);
+          return this.$http.delete(`/api/v1/datasource/${row.id}`);
         }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");

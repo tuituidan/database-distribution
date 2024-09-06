@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,7 +45,7 @@ public class DataSourceController {
      * @param param param
      */
     @PostMapping
-    public void add(SysDataSourceParam param) {
+    public void add(@RequestBody SysDataSourceParam param) {
         dataSourceService.save(null, param);
     }
 
@@ -55,7 +56,7 @@ public class DataSourceController {
      * @param param param
      */
     @PatchMapping("/{id}")
-    public void update(@PathVariable Long id, SysDataSourceParam param) {
+    public void update(@PathVariable Long id, @RequestBody SysDataSourceParam param) {
         dataSourceService.save(id, param);
     }
 

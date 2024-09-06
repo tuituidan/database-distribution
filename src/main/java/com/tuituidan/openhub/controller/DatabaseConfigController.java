@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,7 +48,7 @@ public class DatabaseConfigController {
      * @param param param
      */
     @PostMapping
-    public void add(SysDatabaseConfigParam param) {
+    public void add(@RequestBody SysDatabaseConfigParam param) {
         databaseConfigService.save(null, param);
     }
 
@@ -58,7 +59,7 @@ public class DatabaseConfigController {
      * @param param param
      */
     @PatchMapping("/{id}")
-    public void update(@PathVariable Long id, SysDatabaseConfigParam param) {
+    public void update(@PathVariable Long id, @RequestBody SysDatabaseConfigParam param) {
         databaseConfigService.save(id, param);
     }
 
