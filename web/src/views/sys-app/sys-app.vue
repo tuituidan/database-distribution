@@ -39,14 +39,14 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="openEditDialog(scope.row)"
+            @click.stop="openEditDialog(scope.row)"
           >修改
           </el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
+            @click.stop="handleDelete(scope.row)"
           >删除
           </el-button>
         </template>
@@ -103,9 +103,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      this.$modal.confirm(`是否确认删除【${row.roleName}】数据项？`)
+      this.$modal.confirm(`是否确认删除【${row.name}】数据项？`)
         .then(() => {
-          return this.$http.delete(`/api/v1/project/${row.id}`);
+          return this.$http.delete(`/api/v1/sys_app/${row.id}`);
         }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");

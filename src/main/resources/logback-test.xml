@@ -73,7 +73,7 @@
     <logger name="com.ulisesbocchio.jasyptspringboot" level="off"/>
 
     <logger name="jdbc.sqltiming" level="${sqlLevel}" additivity="false">
-<!--        <appender-ref ref="stdout" />-->
+        <appender-ref ref="stdout" />
         <appender-ref ref="FILE-JDBC" />
     </logger>
     <logger name="com.tuituidan" level="${rootLevel}" additivity="false">

@@ -12,16 +12,19 @@ import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.consts.Separator;
 import com.tuituidan.tresdin.util.BeanExtUtils;
+import com.tuituidan.tresdin.util.ListExtUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.tree.TreeUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
@@ -48,15 +51,23 @@ public class AppDatabaseConfigService implements ApplicationRunner {
 
     @Resource
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
     }
 
-    public List<Long> selectIds(Long appId){
+    /**
+     * selectIds
+     *
+     * @param appId appId
+     * @return List
+     */
+    public List<Long> selectIds(Long appId) {
         return sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(appId))
                 .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toList());
     }
+
     /**
      * selectAll
      *
@@ -120,6 +131,26 @@ public class AppDatabaseConfigService implements ApplicationRunner {
      */
     public void delete(Long id) {
         sysAppMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * saveAppDatabaseConfig
+     *
+     * @param appId appId
+     * @param configIds configIds
+     */
+    public void saveAppDatabaseConfig(Long appId, Long[] configIds) {
+        Set<Long> existIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(appId))
+                .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
+        Pair<Set<Long>, Set<Long>> pair = ListExtUtils.splitSaveIds(configIds, existIds);
+        if (CollectionUtils.isNotEmpty(pair.getLeft())) {
+            sysAppDatabaseConfigMapper.deleteByAppIdAndConfigIds(appId, pair.getLeft());
+        }
+        if (CollectionUtils.isNotEmpty(pair.getRight())) {
+            sysAppDatabaseConfigMapper.insertList(pair.getRight().stream()
+                    .map(configId -> new SysAppDatabaseConfig().setAppId(appId).setDatabaseConfigId(configId))
+                    .collect(Collectors.toList()));
+        }
     }
 
 }

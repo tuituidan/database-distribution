@@ -41,14 +41,14 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="openEditDialog(scope.row)"
+            @click.stop="openEditDialog(scope.row)"
           >修改
           </el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
+            @click.stop="handleDelete(scope.row)"
           >删除
           </el-button>
         </template>

@@ -95,4 +95,12 @@ public class SysAppController {
         return appDatabaseConfigService.selectIds(appId);
     }
 
+    /**
+     * selectConfigTree
+     */
+    @PostMapping("/{appId}/database_config")
+    public void saveAppDatabaseConfig(@PathVariable Long appId, @RequestBody Long[] ids) {
+        appDatabaseConfigService.saveAppDatabaseConfig(appId, ids);
+    }
+
 }

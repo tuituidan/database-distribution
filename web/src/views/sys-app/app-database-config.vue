@@ -8,11 +8,12 @@
           plain
           icon="el-icon-document"
           size="mini"
+          @click="saveHandler"
         >保存
         </el-button>
       </div>
       <el-tree
-        ref="categoryTree"
+        ref="refTree"
         default-expand-all
         :data="treeList"
         :props="{label: 'name'}"
@@ -20,6 +21,7 @@
         highlight-current
         :default-checked-keys="checkedIds"
         show-checkbox>
+        <span slot-scope="{node, data}">{{data.name+'-'+data.id}}</span>
       </el-tree>
     </el-card>
   </div>
@@ -34,17 +36,14 @@ export default {
       loading: false,
       treeList: [],
       checkedIds: [],
-      roleDetail: {
-        categoryIds: [],
-      },
-      selectRow: '',
+      appId: '',
     };
   },
   mounted() {
     this.loadTree();
   },
   methods: {
-    loadTree(){
+    loadTree() {
       this.loading = true;
       this.$http.get(`/api/v1/sys_app/database_config/tree`)
         .then(res => {
@@ -55,8 +54,11 @@ export default {
         });
     },
     loadConfig(row) {
+      if(row){
+        this.appId = row.id;
+      }
       this.loading = true;
-      this.$http.get(`/api/v1/sys_app/${row.id}/database_config`)
+      this.$http.get(`/api/v1/sys_app/${this.appId}/database_config`)
         .then(res => {
           this.checkedIds = res;
         })
@@ -64,20 +66,20 @@ export default {
           this.loading = false;
         });
     },
-    /** 修改按钮操作 */
-    openEditDialog(row) {
-      this.$refs.refDataSourceEdit.open(row);
-    },
-    /** 删除按钮操作 */
-    handleDelete(row) {
-      this.$modal.confirm(`是否确认删除【${row.roleName}】数据项？`)
+    saveHandler() {
+      if (!this.appId) {
+        return;
+      }
+      const keys = this.$refs.refTree.getCheckedKeys(true);
+      this.loading = true;
+      this.$http.post(`/api/v1/sys_app/${this.appId}/database_config`, keys)
         .then(() => {
-          return this.$http.delete(`/api/v1/project/${row.id}`);
-        }).then(() => {
-        this.getList();
-        this.$modal.msgSuccess("删除成功");
-      }).catch(() => {
-      });
+          debugger
+          this.loadConfig();
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   }
 }

@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-col :span="11">
+      <el-col :span="14">
         <sys-app @rowChange="rowChange"></sys-app>
       </el-col>
-      <el-col :span="12" :offset="1">
+      <el-col :span="9" :offset="1">
         <app-database-config ref="refAppDatabaseConfig"></app-database-config>
       </el-col>
     </el-row>
