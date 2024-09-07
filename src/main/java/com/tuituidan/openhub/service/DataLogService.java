@@ -2,11 +2,13 @@ package com.tuituidan.openhub.service;
 
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
+import com.tuituidan.openhub.bean.vo.SysDataLogView;
 import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.tresdin.mybatis.QueryHelper;
 import com.tuituidan.tresdin.mybatis.bean.PageParam;
 import com.tuituidan.tresdin.page.PageData;
+import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -34,11 +36,13 @@ public class DataLogService {
      * @param search search
      * @return PageData
      */
-    public PageData<List<SysDataLog>> selectDataLogPage(PageParam pageParam, SysDataLog search) {
-        return QueryHelper.queryPage(pageParam.getOffset(), pageParam.getLimit(), () -> {
-            QueryHelper.orderBy(pageParam.getSort(), SysDataLog.class);
-            return sysDataLogMapper.select(search);
-        });
+    public PageData<List<SysDataLogView>> selectDataLogPage(PageParam pageParam, SysDataLog search) {
+        PageData<List<SysDataLog>> pageData = QueryHelper.queryPage(pageParam.getOffset(), pageParam.getLimit(),
+                () -> {
+                    QueryHelper.orderBy(pageParam.getSort(), SysDataLog.class);
+                    return sysDataLogMapper.select(search);
+                });
+        return QueryHelper.mapPage(pageData, item -> BeanExtUtils.convert(item, SysDataLogView::new));
     }
 
     /**

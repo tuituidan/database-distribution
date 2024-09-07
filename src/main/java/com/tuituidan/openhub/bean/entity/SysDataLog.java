@@ -1,9 +1,5 @@
 package com.tuituidan.openhub.bean.entity;
 
-import com.alibaba.fastjson2.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.tuituidan.openhub.translator.DatasourceAnno;
-import com.tuituidan.tresdin.datatranslate.translator.dict.DictType;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -30,7 +26,6 @@ public class SysDataLog implements IEntity<SysDataLog, Long> {
     private Long id;
 
     @Column(name = "datasource_id")
-    @DatasourceAnno
     private Long datasourceId;
 
     @Column(name = "database_config_id")
@@ -46,19 +41,14 @@ public class SysDataLog implements IEntity<SysDataLog, Long> {
     private String primaryKey;
 
     @Column(name = "oper_type")
-    @DictType("2000000002")
     private String operType;
 
     @Column(name = "data_log")
     private String dataLog;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 

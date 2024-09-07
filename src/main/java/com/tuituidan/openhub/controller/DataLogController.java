@@ -2,6 +2,7 @@ package com.tuituidan.openhub.controller;
 
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
+import com.tuituidan.openhub.bean.vo.SysDataLogView;
 import com.tuituidan.openhub.service.DataLogService;
 import com.tuituidan.tresdin.consts.TresdinConsts;
 import com.tuituidan.tresdin.datatranslate.annotation.DataTranslate;
@@ -37,7 +38,7 @@ public class DataLogController {
      */
     @GetMapping("/data_log")
     @DataTranslate
-    public PageData<List<SysDataLog>> selectDataLogPage(PageParam pageParam, SysDataLog search) {
+    public PageData<List<SysDataLogView>> selectDataLogPage(PageParam pageParam, SysDataLog search) {
         return dataLogService.selectDataLogPage(pageParam, search);
     }
 

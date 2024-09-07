@@ -108,11 +108,11 @@ public class DataPushService {
                 .setDataLogId(dataLog.getId());
         try {
             ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
-                    .header("appkey", sysApp.getAppKey())
+                    .header("AppKey", sysApp.getAppKey())
                     .header("Authorization", getToken(sysApp))
                     .acceptCharset(StandardCharsets.UTF_8)
                     .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
-            pushLog.setResponse(response.getBody());
+            pushLog.setResponse(StringUtils.defaultString(response.getBody(), "无数据返回"));
             pushLog.setStatus(Objects.toString(response.getStatusCodeValue()));
         } catch (HttpServerErrorException ex) {
             pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));

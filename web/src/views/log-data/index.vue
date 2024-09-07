@@ -26,7 +26,24 @@
 
     <el-table v-loading="loading" :data="table.data"
               border stripe
+              @expand-change="expandChange"
               :default-sort="{prop: 'createTime', order: 'descending'}">
+      <el-table-column type="expand" label="展开">
+        <template slot-scope="props">
+          <div style="padding: 10px 20px">
+            <el-table :data="props.row.children" border :header-cell-style="{backgroundColor: 'white'}">
+              <el-table-column label="序号" type="index" width="50" align="center"/>
+              <el-table-column label="应用名称" align="center" prop="appName" show-overflow-tooltip/>
+              <el-table-column label="推送状态" align="center" prop="status" show-overflow-tooltip/>
+              <el-table-column label="推送结果" align="center" prop="response" show-overflow-tooltip/>
+              <el-table-column label="推送时间" align="center" prop="pushTime" show-overflow-tooltip/>
+              <el-table-column label="推送耗时(毫秒)" align="center" prop="costTime" show-overflow-tooltip/>
+            </el-table>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="序号" type="index" width="50" align="center" :index="table.index"/>
+      <el-table-column label="日志ID" align="center" prop="id" show-overflow-tooltip/>
       <el-table-column label="数据源" align="center" prop="datasourceName" show-overflow-tooltip/>
       <el-table-column label="数据库" align="center" prop="databaseName" show-overflow-tooltip/>
       <el-table-column label="表名" align="center" prop="tableName" show-overflow-tooltip/>
@@ -99,6 +116,12 @@ export default {
         sort: this.queryParams.sort
       };
       this.handleQuery();
+    },
+    expandChange(row) {
+      this.$http.get(`/api/v1/data_log/${row.id}/push_log`)
+        .then(res => {
+          row.children = res;
+        });
     },
   }
 };

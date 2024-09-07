@@ -21,6 +21,8 @@
     <el-table v-loading="loading" :data="table.data"
               border stripe
               :default-sort="{prop: 'pushTime', order: 'descending'}">
+      <el-table-column label="序号" type="index" width="50" align="center" :index="table.index"/>
+      <el-table-column label="日志ID" align="center" prop="dataLogId" show-overflow-tooltip/>
       <el-table-column label="应用名称" align="center" prop="appName" show-overflow-tooltip/>
       <el-table-column label="推送状态" align="center" prop="status" show-overflow-tooltip/>
       <el-table-column label="推送结果" align="center" prop="response" show-overflow-tooltip/>
