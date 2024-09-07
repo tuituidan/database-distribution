@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.EventData;
@@ -55,6 +56,9 @@ public class DataSourceService implements ApplicationRunner {
 
     @Resource
     private AppPropertiesConfig appPropertiesConfig;
+
+    @Resource
+    private Cache<Long, SysDataSource> sysDataSourceCache;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -144,6 +148,7 @@ public class DataSourceService implements ApplicationRunner {
         }
         saveItem.setId(id);
         sysDataSourceMapper.updateByPrimaryKeySelective(saveItem);
+        sysDataSourceCache.invalidate(id);
     }
 
     private void checkUnique(Long id, SysDataSourceParam param) {
@@ -164,6 +169,7 @@ public class DataSourceService implements ApplicationRunner {
         List<SysDatabaseConfig> configs = sysDatabaseConfigMapper.select(new SysDatabaseConfig().setDatasourceId(id));
         Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
+        sysDataSourceCache.invalidate(id);
     }
 
 }

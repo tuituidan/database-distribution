@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.mapper.SysAppMapper;
@@ -22,6 +23,9 @@ public class SysAppService {
 
     @Resource
     private SysAppMapper sysAppMapper;
+
+    @Resource
+    private Cache<Long, SysApp> sysAppCache;
 
     /**
      * selectAll
@@ -47,6 +51,7 @@ public class SysAppService {
         }
         saveItem.setId(id);
         sysAppMapper.updateByPrimaryKeySelective(saveItem);
+        sysAppCache.invalidate(id);
     }
 
     private void checkUnique(Long id, SysAppParam param) {
@@ -62,6 +67,7 @@ public class SysAppService {
      */
     public void delete(Long id) {
         sysAppMapper.deleteByPrimaryKey(id);
+        sysAppCache.invalidate(id);
     }
 
 }

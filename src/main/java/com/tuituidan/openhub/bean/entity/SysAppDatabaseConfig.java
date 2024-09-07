@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.bean.entity;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
@@ -33,10 +34,12 @@ public class SysAppDatabaseConfig implements IEntity<SysAppDatabaseConfig, Long>
     private Long databaseConfigId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 

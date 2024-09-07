@@ -1,7 +1,6 @@
 import axios from 'axios'
 import {Message} from 'element-ui'
 import QS from 'qs';
-import Vue from 'vue';
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 创建axios实例
@@ -16,6 +15,14 @@ const service = axios.create({
 service.interceptors.request.use(config => {
   config.headers['X-Requested-With'] = 'XMLHttpRequest';
   config.paramsSerializer = param => QS.stringify(param, {indices: false});
+  if (config.params) {
+    for (const key in config.params) {
+      const obj = config.params[key];
+      if ([null, undefined, '', NaN].includes(obj) || (Array.isArray(obj) && obj.length <= 0)) {
+        delete config.params[key];
+      }
+    }
+  }
   return config;
 }, error => {
   console.log(error)

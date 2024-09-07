@@ -3,6 +3,7 @@ package com.tuituidan.openhub.config;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tuituidan.openhub.bean.entity.SysApp;
+import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import java.util.List;
@@ -58,6 +59,26 @@ public class AppCacheConfig {
     @Bean
     public Cache<String, String> appTokenCache() {
         return Caffeine.newBuilder().expireAfterWrite(20, TimeUnit.MINUTES).build();
+    }
+
+    /**
+     * sysAppCache
+     *
+     * @return Cache
+     */
+    @Bean
+    public Cache<Long, SysApp> sysAppCache() {
+        return Caffeine.newBuilder().build();
+    }
+
+    /**
+     * sysDataSourceCache
+     *
+     * @return Cache
+     */
+    @Bean
+    public Cache<Long, SysDataSource> sysDataSourceCache() {
+        return Caffeine.newBuilder().build();
     }
 
 }
