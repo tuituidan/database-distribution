@@ -40,6 +40,13 @@ public class SysDataSource implements IEntity<SysDataSource, Long> {
     @Column(name = "server_id")
     private Long serverId;
 
+    private String status;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "last_stop_time")
+    private LocalDateTime lastStopTime;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "create_time")

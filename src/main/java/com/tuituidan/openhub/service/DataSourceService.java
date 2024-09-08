@@ -11,6 +11,7 @@ import com.tuituidan.openhub.bean.dto.SysDataSourceParam;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -62,10 +62,9 @@ public class DataSourceService implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (BooleanUtils.isNotTrue(appPropertiesConfig.getBinlogEnabled())) {
-            return;
-        }
-        List<SysDataSource> dataSourceList = selectAll();
+        List<SysDataSource> dataSourceList = selectAll().stream()
+                .filter(item -> StatusEnum.OPEN.getCode().equals(item.getStatus()))
+                .collect(Collectors.toList());
         for (SysDataSource dataSource : dataSourceList) {
             CompletableUtils.runAsync(() -> createBinaryLogClient(dataSource));
         }

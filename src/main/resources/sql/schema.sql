@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS `sys_datasource` (
     `username` varchar(100) NOT NULL COMMENT '数据库用户名',
     `password` varchar(100) NOT NULL COMMENT '数据库密码',
     `server_id` bigint(20) NOT NULL COMMENT '服务ID',
+    `status` varchar(100) NOT NULL COMMENT '状态',
+    `last_stop_time` datetime DEFAULT NULL COMMENT '上次停止时间',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE

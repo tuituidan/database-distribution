@@ -73,7 +73,6 @@ export default {
       this.loading = true;
       this.$http.post(`/api/v1/sys_app/${this.appId}/database_config`, keys)
         .then(() => {
-          debugger
           this.loadConfig();
         })
         .finally(() => {

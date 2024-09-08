@@ -19,11 +19,6 @@ import org.springframework.context.annotation.Configuration;
 public class AppPropertiesConfig {
 
     /**
-     * binlogEnabled
-     */
-    Boolean binlogEnabled;
-
-    /**
      * 表结构sql.
      */
     private String tableStructSql;
