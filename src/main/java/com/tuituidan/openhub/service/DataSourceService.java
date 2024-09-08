@@ -3,9 +3,12 @@ package com.tuituidan.openhub.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.tuituidan.openhub.bean.dto.SysDataSourceParam;
+import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
+import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
@@ -46,6 +49,12 @@ public class DataSourceService implements ApplicationRunner {
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
 
     @Resource
+    private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
+
+    @Resource
+    private AppPropertiesConfig appPropertiesConfig;
+
+    @Resource
     private Cache<Long, SysDataSource> sysDataSourceCache;
 
     private final Map<Long, DatasourceClient> datasourceClientMap = new HashMap<>();
@@ -59,7 +68,7 @@ public class DataSourceService implements ApplicationRunner {
     }
 
     private DatasourceClient createClient(SysDataSource dataSource) {
-        return new DatasourceClient(dataSource) {
+        return new DatasourceClient(dataSource, appPropertiesConfig) {
             @Override
             public void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, String type,
                     List<Serializable[]> rows) {
@@ -114,6 +123,12 @@ public class DataSourceService implements ApplicationRunner {
     public void setStatus(Long id, String status) {
         SysDataSource dataSource = new SysDataSource().setId(id).setStatus(status);
         if (StatusEnum.OPEN.getCode().equals(status)) {
+            List<SysDatabaseConfig> configs =
+                    sysDatabaseConfigMapper.select(new SysDatabaseConfig().setDatasourceId(id));
+            Assert.isTrue(CollectionUtils.isNotEmpty(configs), "无数据监听配置，请先配置再开启");
+            List<SysAppDatabaseConfig> appConfigs =
+                    sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setDatasourceId(id));
+            Assert.isTrue(CollectionUtils.isNotEmpty(appConfigs), "无应用监听配置，请先配置再开启");
             datasourceClientMap.get(id).start();
         } else {
             datasourceClientMap.get(id).stop();

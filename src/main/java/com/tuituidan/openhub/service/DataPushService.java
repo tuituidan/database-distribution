@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -49,6 +50,7 @@ import org.springframework.web.client.RestTemplate;
  * @date 2024/9/1
  */
 @Service
+@Slf4j
 public class DataPushService {
 
     @Resource
@@ -84,6 +86,9 @@ public class DataPushService {
                     .setDataLog(JSONObject.toJSONString(datas));
             sysDataLogMapper.insert(dataLog);
             pushToApps(dataLog, configView, datas);
+        }).exceptionally(ex -> {
+            log.error("数据日志解析异常", ex);
+            return null;
         });
     }
 

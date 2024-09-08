@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `sys_database_config` (
 CREATE TABLE IF NOT EXISTS `sys_app_database_config` (
     `id` bigint(20) NOT NULL COMMENT '主键',
     `app_id` bigint(20) NOT NULL COMMENT '应用ID',
+    `datasource_id` bigint(20) NOT NULL COMMENT '数据源ID',
     `database_config_id` bigint(20) NOT NULL COMMENT '数据库配置ID',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

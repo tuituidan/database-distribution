@@ -7,6 +7,7 @@ import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
+import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
@@ -33,17 +34,11 @@ public abstract class DatasourceClient {
 
     private final SysDataSource dataSource;
 
+    private final AppPropertiesConfig appConfig;
+
     private BinaryLogClient binaryLogClient;
 
     private final JdbcTemplate jdbcTemplate;
-
-    private static final String JDBC_URL = "jdbc:mysql://{}:{}/{}?useUnicode=true&characterEncoding=utf8"
-            + "&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8";
-
-    private static final String SQL_DATABASE = "select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME"
-            + " not in ('mysql', 'information_schema', 'performance_schema', 'sys')";
-
-    private static final String SQL_TABLE = "select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA ='{}'";
 
     private final Map<Long, TableMapEventData> configMap = new HashMap<>();
 
@@ -63,10 +58,11 @@ public abstract class DatasourceClient {
      *
      * @param dataSource dataSource
      */
-    protected DatasourceClient(SysDataSource dataSource) {
+    protected DatasourceClient(SysDataSource dataSource, AppPropertiesConfig appPropertiesConfig) {
         this.dataSource = dataSource;
+        this.appConfig = appPropertiesConfig;
         this.jdbcTemplate = new JdbcTemplate(DataSourceBuilder.create()
-                .url(StringExtUtils.format(JDBC_URL, dataSource.getHost(),
+                .url(StringExtUtils.format(appConfig.getJdbcUrlTemplate(), dataSource.getHost(),
                         dataSource.getPort(), "mysql"))
                 .username(dataSource.getUsername())
                 .password(dataSource.getPassword())
@@ -144,7 +140,7 @@ public abstract class DatasourceClient {
      * @return List
      */
     public List<String> getDatabase() {
-        return jdbcTemplate.queryForList(SQL_DATABASE, String.class);
+        return jdbcTemplate.queryForList(appConfig.getSqlDatabase(), String.class);
     }
 
     /**
@@ -153,7 +149,7 @@ public abstract class DatasourceClient {
      * @return List
      */
     public List<String> getDatabaseTables(String database) {
-        return jdbcTemplate.queryForList(StringExtUtils.format(SQL_TABLE, database), String.class);
+        return jdbcTemplate.queryForList(StringExtUtils.format(appConfig.getSqlDatabaseTable(), database), String.class);
     }
 
 }

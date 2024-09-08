@@ -19,9 +19,19 @@ import org.springframework.context.annotation.Configuration;
 public class AppPropertiesConfig {
 
     /**
+     * 获取数据库sql.
+     */
+    private String sqlDatabase;
+
+    /**
+     * 获取数据表sql.
+     */
+    private String sqlDatabaseTable;
+
+    /**
      * 表结构sql.
      */
-    private String tableStructSql;
+    private String sqlTableStruct;
 
     /**
      * jdbcUrl模版.

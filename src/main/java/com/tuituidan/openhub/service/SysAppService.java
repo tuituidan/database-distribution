@@ -3,10 +3,15 @@ package com.tuituidan.openhub.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
+import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
+import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -25,7 +30,16 @@ public class SysAppService {
     private SysAppMapper sysAppMapper;
 
     @Resource
+    private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
+
+    @Resource
     private Cache<Long, SysApp> sysAppCache;
+
+    @Resource
+    private Cache<Long, List<SysApp>> databaseAppConfigCache;
+
+    @Resource
+    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
 
     /**
      * selectAll
@@ -52,6 +66,10 @@ public class SysAppService {
         saveItem.setId(id);
         sysAppMapper.updateByPrimaryKeySelective(saveItem);
         sysAppCache.invalidate(id);
+        Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
+                .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
+        databaseAppConfigCache.invalidateAll(configIds);
+        databaseConfigViewCache.invalidateAll(configIds);
     }
 
     private void checkUnique(Long id, SysAppParam param) {
@@ -68,6 +86,10 @@ public class SysAppService {
     public void delete(Long id) {
         sysAppMapper.deleteByPrimaryKey(id);
         sysAppCache.invalidate(id);
+        Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
+                .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
+        databaseAppConfigCache.invalidateAll(configIds);
+        databaseConfigViewCache.invalidateAll(configIds);
     }
 
 }

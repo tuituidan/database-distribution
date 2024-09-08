@@ -167,7 +167,7 @@ public class DatabaseConfigService implements ApplicationRunner {
             SysDatabaseConfig config, List<SysApp> appList) {
         SysDatabaseConfigView configView = BeanExtUtils.convert(config, SysDatabaseConfigView::new);
         configView.setTableStruct(jdbcTemplate.query(
-                StringExtUtils.format(appPropertiesConfig.getTableStructSql(),
+                StringExtUtils.format(appPropertiesConfig.getSqlTableStruct(),
                         config.getDatabaseName(), config.getTableName()),
                 new BeanPropertyRowMapper<>(TableStruct.class)));
         configView.getTableStruct().sort(Comparator.comparingInt(TableStruct::getOrdinalPosition));

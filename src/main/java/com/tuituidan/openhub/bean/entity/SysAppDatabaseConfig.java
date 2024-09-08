@@ -30,6 +30,9 @@ public class SysAppDatabaseConfig implements IEntity<SysAppDatabaseConfig, Long>
     @Column(name = "app_id")
     private Long appId;
 
+    @Column(name = "datasource_id")
+    private Long datasourceId;
+
     @Column(name = "database_config_id")
     private Long databaseConfigId;
 

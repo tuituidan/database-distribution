@@ -1,22 +1,22 @@
 package com.tuituidan.openhub.service;
 
-import com.tuituidan.openhub.bean.dto.SysAppParam;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TreeView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
-import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.consts.Separator;
-import com.tuituidan.tresdin.util.BeanExtUtils;
 import com.tuituidan.tresdin.util.ListExtUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.tree.TreeUtils;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,10 +25,7 @@ import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 /**
  * SysAppService.
@@ -38,10 +35,7 @@ import org.springframework.util.Assert;
  * @date 2024/8/31
  */
 @Service
-public class AppDatabaseConfigService implements ApplicationRunner {
-
-    @Resource
-    private SysAppMapper sysAppMapper;
+public class AppDatabaseConfigService {
 
     @Resource
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
@@ -52,10 +46,11 @@ public class AppDatabaseConfigService implements ApplicationRunner {
     @Resource
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
+    @Resource
+    private Cache<Long, List<SysApp>> databaseAppConfigCache;
 
-    }
+    @Resource
+    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
 
     /**
      * selectIds
@@ -107,33 +102,6 @@ public class AppDatabaseConfigService implements ApplicationRunner {
     }
 
     /**
-     * save
-     *
-     * @param id id
-     * @param param param
-     */
-    public void save(Long id, SysAppParam param) {
-        SysApp exist = sysAppMapper.selectOne(new SysApp().setAppKey(param.getAppKey()));
-        if (id == null) {
-            Assert.isNull(exist, "已存在相同应用标识的应用");
-            sysAppMapper.insertSelective(BeanExtUtils.convert(param, SysApp::new));
-            return;
-        }
-        Assert.isTrue(id.equals(exist.getId()), "已存在相同应用标识的应用");
-        BeanExtUtils.copyNotNullProperties(param, exist);
-        sysAppMapper.updateByPrimaryKeySelective(exist);
-    }
-
-    /**
-     * delete
-     *
-     * @param id id
-     */
-    public void delete(Long id) {
-        sysAppMapper.deleteByPrimaryKey(id);
-    }
-
-    /**
      * saveAppDatabaseConfig
      *
      * @param appId appId
@@ -147,9 +115,20 @@ public class AppDatabaseConfigService implements ApplicationRunner {
             sysAppDatabaseConfigMapper.deleteByAppIdAndConfigIds(appId, pair.getLeft());
         }
         if (CollectionUtils.isNotEmpty(pair.getRight())) {
+            Map<Long, Long> datasourceIdMap = sysDatabaseConfigMapper.selectByIds(StringUtils.join(pair.getRight(),
+                            ","))
+                    .stream().collect(Collectors.toMap(SysDatabaseConfig::getId, SysDatabaseConfig::getDatasourceId));
             sysAppDatabaseConfigMapper.insertList(pair.getRight().stream()
-                    .map(configId -> new SysAppDatabaseConfig().setAppId(appId).setDatabaseConfigId(configId))
+                    .map(configId -> new SysAppDatabaseConfig().setAppId(appId)
+                            .setDatasourceId(datasourceIdMap.get(configId))
+                            .setDatabaseConfigId(configId))
                     .collect(Collectors.toList()));
+        }
+        if (CollectionUtils.isNotEmpty(pair.getLeft()) || CollectionUtils.isNotEmpty(pair.getRight())) {
+            HashSet<Long> ids = new HashSet<>(pair.getLeft());
+            ids.addAll(pair.getRight());
+            databaseAppConfigCache.invalidateAll(ids);
+            databaseConfigViewCache.invalidateAll(ids);
         }
     }
 
