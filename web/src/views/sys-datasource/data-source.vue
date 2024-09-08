@@ -35,15 +35,18 @@
       <el-table-column label="用户名" align="center" prop="username" :show-overflow-tooltip="true"/>
       <el-table-column label="密码" align="center" prop="password" :show-overflow-tooltip="true"/>
       <el-table-column label="服务ID" align="center" prop="serverId" :show-overflow-tooltip="true"/>
-      <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
+      <el-table-column label="状态" align="center">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click.stop="openEditDialog(scope.row)"
-          >修改
-          </el-button>
+          <el-switch
+            v-model="scope.row.status"
+            active-value="01"
+            inactive-value="02"
+            @change="handleStatusChange(scope.row)"
+          ></el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="80" class-name="small-padding fixed-width">
+        <template slot-scope="scope">
           <el-button
             size="mini"
             type="text"
@@ -102,6 +105,20 @@ export default {
     /** 修改按钮操作 */
     openEditDialog(row) {
       this.$refs.refDataSourceEdit.open(row);
+    },
+    handleStatusChange(row) {
+      let text = row.status === "01" ? "启用" : "停用";
+      this.$modal.confirm('确认要' + text + '数据源【' + row.name + '】吗？')
+        .then(() => {
+          return this.$http.patch(`/api/v1/datasource/${row.id}/status/${row.status}`);
+        })
+        .then(() => {
+          this.getList();
+          this.$modal.msgSuccess(text + "成功");
+        })
+        .catch(function () {
+          row.status = row.status === "01" ? "02" : "01";
+        });
     },
     /** 删除按钮操作 */
     handleDelete(row) {

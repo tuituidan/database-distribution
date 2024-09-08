@@ -61,6 +61,17 @@ public class DataSourceController {
     }
 
     /**
+     * setStatus
+     *
+     * @param id id
+     * @param status status
+     */
+    @PatchMapping("/{id}/status/{status}")
+    public void setStatus(@PathVariable Long id, @PathVariable String status) {
+        dataSourceService.setStatus(id, status);
+    }
+
+    /**
      * delete
      *
      * @param id id

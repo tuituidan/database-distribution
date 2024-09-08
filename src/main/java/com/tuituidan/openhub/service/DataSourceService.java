@@ -1,26 +1,19 @@
 package com.tuituidan.openhub.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
-import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
-import com.github.shyiko.mysql.binlog.event.EventData;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
-import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
-import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.tuituidan.openhub.bean.dto.SysDataSourceParam;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
-import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
-import com.tuituidan.tresdin.util.StringExtUtils;
-import com.tuituidan.tresdin.util.thread.CompletableUtils;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -28,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,10 +47,9 @@ public class DataSourceService implements ApplicationRunner {
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
 
     @Resource
-    private AppPropertiesConfig appPropertiesConfig;
-
-    @Resource
     private Cache<Long, SysDataSource> sysDataSourceCache;
+
+    private final Map<Long, DatasourceClient> datasourceClientMap = new HashMap<>();
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -66,61 +57,18 @@ public class DataSourceService implements ApplicationRunner {
                 .filter(item -> StatusEnum.OPEN.getCode().equals(item.getStatus()))
                 .collect(Collectors.toList());
         for (SysDataSource dataSource : dataSourceList) {
-            CompletableUtils.runAsync(() -> createBinaryLogClient(dataSource));
+            datasourceClientMap.put(dataSource.getId(), createClient(dataSource));
         }
     }
 
-    private void createBinaryLogClient(SysDataSource dataSource) {
-        BinaryLogClient client = new BinaryLogClient(dataSource.getHost(),
-                dataSource.getPort(),
-                dataSource.getUsername(),
-                dataSource.getPassword());
-        client.setServerId(dataSource.getServerId());
-        Map<Long, TableMapEventData> configMap = new HashMap<>();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(DataSourceBuilder.create()
-                .url(StringExtUtils.format(appPropertiesConfig.getJdbcUrlTemplate(), dataSource.getHost(),
-                        dataSource.getPort(), "mysql"))
-                .username(dataSource.getUsername())
-                .password(dataSource.getPassword())
-                .driverClassName("com.mysql.cj.jdbc.Driver")
-                .build());
-        client.registerEventListener(event -> analyse(jdbcTemplate, event.getData(), configMap));
-        try {
-            client.connect();
-        } catch (Exception ex) {
-            log.error("数据监控启动失败", ex);
-        }
-    }
-
-    private void analyse(JdbcTemplate jdbcTemplate, EventData data, Map<Long, TableMapEventData> configMap) {
-        if (data instanceof TableMapEventData) {
-            TableMapEventData tableEvent = (TableMapEventData) data;
-            configMap.put(tableEvent.getTableId(), tableEvent);
-            return;
-        }
-        if (data instanceof UpdateRowsEventData) {
-            UpdateRowsEventData rowsData = (UpdateRowsEventData) data;
-            if (configMap.containsKey(rowsData.getTableId())) {
-                databaseConfigService.analyse(jdbcTemplate, configMap.get(rowsData.getTableId()), "update",
-                        rowsData.getRows().stream().map(Entry::getValue).collect(Collectors.toList()));
+    private DatasourceClient createClient(SysDataSource dataSource) {
+        return new DatasourceClient(dataSource) {
+            @Override
+            public void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, String type,
+                    List<Serializable[]> rows) {
+                databaseConfigService.analyse(jdbcTemplate, tableEvent, type, rows);
             }
-            return;
-        }
-        if (data instanceof WriteRowsEventData) {
-            WriteRowsEventData rowsData = (WriteRowsEventData) data;
-            if (configMap.containsKey(rowsData.getTableId())) {
-                databaseConfigService.analyse(jdbcTemplate, configMap.get(rowsData.getTableId()), "insert",
-                        rowsData.getRows());
-            }
-            return;
-        }
-        if (data instanceof DeleteRowsEventData) {
-            DeleteRowsEventData rowsData = (DeleteRowsEventData) data;
-            if (configMap.containsKey(rowsData.getTableId())) {
-                databaseConfigService.analyse(jdbcTemplate, configMap.get(rowsData.getTableId()), "delete",
-                        rowsData.getRows());
-            }
-        }
+        };
     }
 
     /**
@@ -159,12 +107,34 @@ public class DataSourceService implements ApplicationRunner {
     }
 
     /**
+     * setStatus
+     *
+     * @param id id
+     * @param status status
+     */
+    public void setStatus(Long id, String status) {
+        SysDataSource dataSource = new SysDataSource().setId(id).setStatus(status);
+        if (StatusEnum.OPEN.getCode().equals(status)) {
+            SysDataSource source = sysDataSourceMapper.selectByPrimaryKey(id);
+            source.setStatus(status);
+            datasourceClientMap.put(id, createClient(source));
+        } else {
+            datasourceClientMap.get(id).stop();
+            datasourceClientMap.remove(id);
+            dataSource.setLastStopTime(LocalDateTime.now());
+        }
+        sysDataSourceMapper.updateByPrimaryKeySelective(dataSource);
+    }
+
+    /**
      * delete
      *
      * @param id id
      */
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
+        SysDataSource dataSource = sysDataSourceMapper.selectByPrimaryKey(id);
+        Assert.isTrue(StatusEnum.STOP.getCode().equals(dataSource.getStatus()), "启用中的数据源无法删除，请先停止");
         List<SysDatabaseConfig> configs = sysDatabaseConfigMapper.select(new SysDatabaseConfig().setDatasourceId(id));
         Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
