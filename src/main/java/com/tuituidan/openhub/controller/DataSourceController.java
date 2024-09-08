@@ -81,4 +81,27 @@ public class DataSourceController {
         dataSourceService.delete(id);
     }
 
+    /**
+     * getDatabase
+     *
+     * @param id id
+     * @return List
+     */
+    @GetMapping("/{id}/database")
+    public List<String> getDatabase(@PathVariable Long id) {
+        return dataSourceService.getDatabase(id);
+    }
+
+    /**
+     * getDatabaseTables
+     *
+     * @param id id
+     * @param database database
+     * @return List
+     */
+    @GetMapping("/{id}/database/{database}")
+    public List<String> getDatabaseTables(@PathVariable Long id, @PathVariable String database) {
+        return dataSourceService.getDatabaseTables(id, database);
+    }
+
 }

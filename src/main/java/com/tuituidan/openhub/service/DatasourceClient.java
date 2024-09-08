@@ -35,10 +35,15 @@ public abstract class DatasourceClient {
 
     private BinaryLogClient binaryLogClient;
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     private static final String JDBC_URL = "jdbc:mysql://{}:{}/{}?useUnicode=true&characterEncoding=utf8"
             + "&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8";
+
+    private static final String SQL_DATABASE = "select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME"
+            + " not in ('mysql', 'information_schema', 'performance_schema', 'sys')";
+
+    private static final String SQL_TABLE = "select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA ='{}'";
 
     private final Map<Long, TableMapEventData> configMap = new HashMap<>();
 
@@ -60,7 +65,14 @@ public abstract class DatasourceClient {
      */
     protected DatasourceClient(SysDataSource dataSource) {
         this.dataSource = dataSource;
-        if (StatusEnum.OPEN.getCode().equals(this.dataSource.getStatus())) {
+        this.jdbcTemplate = new JdbcTemplate(DataSourceBuilder.create()
+                .url(StringExtUtils.format(JDBC_URL, dataSource.getHost(),
+                        dataSource.getPort(), "mysql"))
+                .username(dataSource.getUsername())
+                .password(dataSource.getPassword())
+                .driverClassName("com.mysql.cj.jdbc.Driver")
+                .build());
+        if (StatusEnum.OPEN.getCode().equals(dataSource.getStatus())) {
             start();
         }
     }
@@ -69,20 +81,13 @@ public abstract class DatasourceClient {
      * start
      */
     public void start() {
-        binaryLogClient = new BinaryLogClient(dataSource.getHost(),
-                dataSource.getPort(),
-                dataSource.getUsername(),
-                dataSource.getPassword());
-        binaryLogClient.setServerId(dataSource.getServerId());
-        jdbcTemplate = new JdbcTemplate(DataSourceBuilder.create()
-                .url(StringExtUtils.format(JDBC_URL, dataSource.getHost(),
-                        dataSource.getPort(), "mysql"))
-                .username(dataSource.getUsername())
-                .password(dataSource.getPassword())
-                .driverClassName("com.mysql.cj.jdbc.Driver")
-                .build());
-        binaryLogClient.registerEventListener(event -> analyse(event.getData()));
         CompletableUtils.runAsync(() -> {
+            this.binaryLogClient = new BinaryLogClient(dataSource.getHost(),
+                    dataSource.getPort(),
+                    dataSource.getUsername(),
+                    dataSource.getPassword());
+            this.binaryLogClient.setServerId(dataSource.getServerId());
+            this.binaryLogClient.registerEventListener(event -> analyse(event.getData()));
             try {
                 binaryLogClient.connect();
             } catch (Exception ex) {
@@ -131,6 +136,24 @@ public abstract class DatasourceClient {
                 handler(jdbcTemplate, configMap.get(rowsData.getTableId()), "delete", rowsData.getRows());
             }
         }
+    }
+
+    /**
+     * getDatabase
+     *
+     * @return List
+     */
+    public List<String> getDatabase() {
+        return jdbcTemplate.queryForList(SQL_DATABASE, String.class);
+    }
+
+    /**
+     * getDatabaseTables
+     *
+     * @return List
+     */
+    public List<String> getDatabaseTables(String database) {
+        return jdbcTemplate.queryForList(StringExtUtils.format(SQL_TABLE, database), String.class);
     }
 
 }

@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -53,9 +52,7 @@ public class DataSourceService implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        List<SysDataSource> dataSourceList = selectAll().stream()
-                .filter(item -> StatusEnum.OPEN.getCode().equals(item.getStatus()))
-                .collect(Collectors.toList());
+        List<SysDataSource> dataSourceList = selectAll();
         for (SysDataSource dataSource : dataSourceList) {
             datasourceClientMap.put(dataSource.getId(), createClient(dataSource));
         }
@@ -90,7 +87,9 @@ public class DataSourceService implements ApplicationRunner {
         checkUnique(id, param);
         SysDataSource saveItem = BeanExtUtils.convert(param, SysDataSource::new);
         if (id == null) {
+            saveItem.setStatus(StatusEnum.STOP.getCode());
             sysDataSourceMapper.insertSelective(saveItem);
+            datasourceClientMap.put(id, createClient(saveItem));
             return;
         }
         saveItem.setId(id);
@@ -115,12 +114,9 @@ public class DataSourceService implements ApplicationRunner {
     public void setStatus(Long id, String status) {
         SysDataSource dataSource = new SysDataSource().setId(id).setStatus(status);
         if (StatusEnum.OPEN.getCode().equals(status)) {
-            SysDataSource source = sysDataSourceMapper.selectByPrimaryKey(id);
-            source.setStatus(status);
-            datasourceClientMap.put(id, createClient(source));
+            datasourceClientMap.get(id).start();
         } else {
             datasourceClientMap.get(id).stop();
-            datasourceClientMap.remove(id);
             dataSource.setLastStopTime(LocalDateTime.now());
         }
         sysDataSourceMapper.updateByPrimaryKeySelective(dataSource);
@@ -139,6 +135,28 @@ public class DataSourceService implements ApplicationRunner {
         Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
         sysDataSourceCache.invalidate(id);
+        datasourceClientMap.remove(id);
+    }
+
+    /**
+     * getDatabase
+     *
+     * @param id id
+     * @return List
+     */
+    public List<String> getDatabase(Long id) {
+        return datasourceClientMap.get(id).getDatabase();
+    }
+
+    /**
+     * getDatabaseTables
+     *
+     * @param id id
+     * @param database database
+     * @return List
+     */
+    public List<String> getDatabaseTables(Long id, String database) {
+        return datasourceClientMap.get(id).getDatabaseTables(database);
     }
 
 }

@@ -73,7 +73,7 @@ export default {
         serverId: [
           {required: true, message: "服务ID不能为空", trigger: "blur"}
         ],
-      }
+      },
     }
   },
   methods: {
@@ -85,7 +85,6 @@ export default {
       }else{
         this.title = '新增数据源';
       }
-
       this.show = true;
     },
     resetForm() {

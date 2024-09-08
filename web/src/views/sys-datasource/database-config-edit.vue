@@ -3,11 +3,28 @@
              :close-on-click-modal="false"
              width="480px" append-to-body>
     <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
-      <el-form-item label="数据库名" prop="databaseName">
-        <el-input v-model="form.databaseName" placeholder="请输入数据库名" maxlength="100" v-trim/>
+      <el-form-item label="数据库" prop="databaseName">
+        <el-select v-model="form.databaseName" placeholder="请选择数据库"
+                   @change="databaseSelect"
+                   clearable
+                   filterable>
+          <el-option
+            v-for="item in databaseOptions"
+            :key="item"
+            :label="item"
+            :value="item">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="表名" prop="tableName">
-        <el-input v-model="form.tableName" placeholder="请输入表名" maxlength="100" v-trim/>
+        <el-select v-model="form.tableName" placeholder="请选择表名" clearable filterable>
+          <el-option
+            v-for="item in tableOptions"
+            :key="item"
+            :label="item"
+            :value="item">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="表说明" prop="tableComment">
         <el-input v-model="form.tableComment" placeholder="请输入表说明" maxlength="30" v-trim/>
@@ -71,22 +88,37 @@ export default {
         tableName: [
           {required: true, message: "表名不能为空", trigger: "blur"}
         ],
-      }
+      },
+      databaseOptions: [],
+      tableOptions: [],
     }
   },
   methods: {
     open(datasourceId, row) {
       this.datasourceId = datasourceId;
       this.resetForm();
-      if(row){
+      this.loadDatabaseOptions();
+      if (row) {
         this.form = {...row};
+        this.databaseSelect(this.form.databaseName);
         this.title = '编辑数据库配置';
-      }else{
+      } else {
         this.title = '新增数据库配置';
       }
       this.show = true;
     },
-
+    databaseSelect(database){
+      this.$http.get(`/api/v1/datasource/${this.datasourceId}/database/${database}`)
+        .then(res => {
+          this.tableOptions = res;
+        })
+    },
+    loadDatabaseOptions() {
+      this.$http.get(`/api/v1/datasource/${this.datasourceId}/database`)
+        .then(res => {
+          this.databaseOptions = res;
+        })
+    },
     resetForm() {
       this.form = {
         databaseName: '',

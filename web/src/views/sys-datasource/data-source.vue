@@ -45,8 +45,15 @@
           ></el-switch>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="80" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click.stop="openEditDialog(scope.row)"
+          >修改
+          </el-button>
           <el-button
             size="mini"
             type="text"
@@ -104,6 +111,10 @@ export default {
     },
     /** 修改按钮操作 */
     openEditDialog(row) {
+      if (row.status === '01') {
+        this.$modal.msgError("请先停用再进行修改");
+        return;
+      }
       this.$refs.refDataSourceEdit.open(row);
     },
     handleStatusChange(row) {
@@ -122,6 +133,10 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
+      if (row.status === '01') {
+        this.$modal.msgError("请先停用再进行删除");
+        return;
+      }
       this.$modal.confirm(`是否确认删除【${row.name}】数据项？`)
         .then(() => {
           return this.$http.delete(`/api/v1/datasource/${row.id}`);
