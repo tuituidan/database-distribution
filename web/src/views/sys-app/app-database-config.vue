@@ -21,7 +21,6 @@
         highlight-current
         :default-checked-keys="checkedIds"
         show-checkbox>
-        <span slot-scope="{node, data}">{{data.name+'-'+data.id}}</span>
       </el-tree>
     </el-card>
   </div>

@@ -3,7 +3,7 @@
     <el-form :model="queryParams"
              ref="queryForm" size="small" :inline="true" label-width="68px">
       <el-form-item label="应用" prop="appId">
-        <el-select v-model="queryParams.appId" placeholder="请选择应用">
+        <el-select v-model="queryParams.appId" clearable placeholder="请选择应用">
           <el-option
             v-for="item in appList"
             :key="item.id"
@@ -11,6 +11,14 @@
             :value="item.id">
           </el-option>
         </el-select>
+      </el-form-item>
+      <el-form-item label="日志ID" prop="dataLogId">
+        <el-input
+          v-model="queryParams.dataLogId"
+          placeholder="请输入日志ID"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -53,8 +61,8 @@ export default {
         pageIndex: 1,
         offset: 0,
         limit: 10,
-        databaseName: '',
-        tableName: '',
+        dataLogId: '',
+        appId: '',
         sort: '-pushTime',
       },
       appList: [],
@@ -97,8 +105,8 @@ export default {
         pageIndex: 1,
         offset: 0,
         limit: 10,
-        databaseName: '',
-        tableName: '',
+        dataLogId: '',
+        appId: '',
         sort: this.queryParams.sort
       };
       this.handleQuery();
