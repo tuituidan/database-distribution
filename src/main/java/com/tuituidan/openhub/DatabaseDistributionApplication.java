@@ -12,6 +12,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DatabaseDistributionApplication {
 
+    /**
+     * main
+     *
+     * @param args args
+     */
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC+8"));
         SpringApplication.run(DatabaseDistributionApplication.class, args);

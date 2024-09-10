@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.controller;
 
+import com.tuituidan.openhub.bean.dto.PushHandlerParam;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.service.DatabaseConfigService;
@@ -76,12 +77,11 @@ public class DatabaseConfigController {
     /**
      * handler
      *
-     * @param id id
-     * @param incrementValue incrementValue
+     * @param param param
      */
-    @PostMapping("/{id}/handler/{incrementValue}")
-    public void handler(@PathVariable Long id, @PathVariable String incrementValue) {
-        databaseConfigService.handler(id, incrementValue);
+    @PostMapping("/handler")
+    public void handler(@RequestBody PushHandlerParam param) {
+        databaseConfigService.handler(param);
     }
 
 }

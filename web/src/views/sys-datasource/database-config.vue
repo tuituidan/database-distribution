@@ -2,7 +2,18 @@
   <div>
     <el-row type="flex" justify="space-between">
       <div></div>
-      <el-row class="mb8 mt5">
+      <el-row :gutter="10" class="mb8 mt5">
+        <el-col :span="1.5">
+          <el-button
+            type="primary"
+            plain
+            size="small"
+            icon="el-icon-upload"
+            v-btn-multiple="selections"
+            @click="handlePush"
+          >增量重推
+          </el-button>
+        </el-col>
         <el-col :span="1.5">
           <el-button
             type="success"
@@ -18,11 +29,11 @@
     <el-table
       stripe
       border
-      highlight-current-row
       ref="dataTable"
       v-loading="loading"
+      @selection-change="selections = $refs.dataTable.selection"
       :data="dataList">
-      <el-table-column label="序号" type="index" width="50" align="center"/>
+      <el-table-column type="selection" width="50" align="center" :selectable="tableSelectable"/>
       <el-table-column label="数据库名" align="center" prop="databaseName" :show-overflow-tooltip="true"/>
       <el-table-column label="表名" align="center" prop="tableName" :show-overflow-tooltip="true"/>
       <el-table-column label="表说明" align="center" prop="tableComment" :show-overflow-tooltip="true"/>
@@ -49,6 +60,7 @@
       </el-table-column>
     </el-table>
     <database-config-edit ref="refDatabaseConfigEdit" @refresh="loadConfig"></database-config-edit>
+    <database-push ref="refDatabasePush"></database-push>
   </div>
 </template>
 
@@ -56,10 +68,13 @@
 export default {
   name: "data-source-list",
   components: {
-    'database-config-edit': () => import('./database-config-edit')
+    'database-config-edit': () => import('./database-config-edit'),
+    'database-push': () => import('./database-push')
   },
   data() {
     return {
+      // 选中数组
+      selections: [],
       // 遮罩层
       loading: false,
       dataList: [],
@@ -70,6 +85,12 @@ export default {
   mounted() {
   },
   methods: {
+    tableSelectable(row) {
+      if (!this.selections.length) {
+        return true;
+      }
+      return this.selections[0].incrementType === row.incrementType
+    },
     loadConfig(row) {
       if (row) {
         this.datasourceId = row.id;
@@ -97,6 +118,12 @@ export default {
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {
       });
+    },
+    handlePush() {
+      if (!this.selections.length) {
+        return;
+      }
+      this.$refs.refDatabasePush.open(this.datasourceId, this.selections)
     },
   }
 }

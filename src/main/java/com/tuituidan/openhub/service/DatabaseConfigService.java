@@ -2,6 +2,7 @@ package com.tuituidan.openhub.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
+import com.tuituidan.openhub.bean.dto.PushHandlerParam;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
@@ -194,26 +195,28 @@ public class DatabaseConfigService implements ApplicationRunner {
     /**
      * handler
      *
-     * @param configId configId
-     * @param incrementValue incrementValue
+     * @param param param
      */
-    public void handler(Long configId, String incrementValue) {
-        SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(configId);
-        Assert.notNull(config, "配置查询失败");
-        checkIncrementValue(config.getIncrementType(), incrementValue);
-        List<SysApp> appList = databaseAppConfigCache.getIfPresent(configId);
-        if (CollectionUtils.isEmpty(appList)) {
-            return;
-        }
-        JdbcTemplate jdbcTemplate = Objects.requireNonNull(datasourceClientCache.getIfPresent(config.getDatasourceId()))
+    public void handler(PushHandlerParam param) {
+        JdbcTemplate jdbcTemplate = Objects.requireNonNull(datasourceClientCache.getIfPresent(param.getDatasourceId()))
                 .getJdbcTemplate();
-        SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                k -> getDatabaseConfigView(jdbcTemplate, config, appList)));
-        List<Map<String, Object>> dataList = buildDataList(jdbcTemplate, config, incrementValue);
-        for (Map<String, Object> item : dataList) {
-            // 拆成单条，避免数据过大
-            dataPushService.push(configView, DataChangeEnum.REPLACE.getCode(), Collections.singletonList(item));
+        for (Long configId : param.getIds()) {
+            SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(configId);
+            Assert.notNull(config, "配置查询失败");
+            checkIncrementValue(config.getIncrementType(), param.getIncrementValue());
+            List<SysApp> appList = databaseAppConfigCache.getIfPresent(configId);
+            if (CollectionUtils.isEmpty(appList)) {
+                return;
+            }
+            SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
+                    k -> getDatabaseConfigView(jdbcTemplate, config, appList)));
+            List<Map<String, Object>> dataList = buildDataList(jdbcTemplate, config, param.getIncrementValue());
+            for (Map<String, Object> item : dataList) {
+                // 拆成单条，避免数据过大
+                dataPushService.push(configView, DataChangeEnum.REPLACE.getCode(), Collections.singletonList(item));
+            }
         }
+
     }
 
     private SysDatabaseConfigView getDatabaseConfigView(JdbcTemplate jdbcTemplate,
