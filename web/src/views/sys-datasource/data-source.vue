@@ -111,7 +111,7 @@ export default {
     },
     /** 修改按钮操作 */
     openEditDialog(row) {
-      if (row.status === '01') {
+      if (row && row.status === '01') {
         this.$modal.msgError("请先停用再进行修改");
         return;
       }
