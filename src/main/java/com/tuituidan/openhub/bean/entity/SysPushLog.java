@@ -2,6 +2,7 @@ package com.tuituidan.openhub.bean.entity;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.openhub.translator.SysAppAnno;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
@@ -39,21 +40,21 @@ public class SysPushLog implements IEntity<SysPushLog, Long> {
 
     private String response;
 
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "push_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime pushTime;
 
     @Column(name = "cost_time")
     private Long costTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 

@@ -14,9 +14,7 @@ import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +55,14 @@ public class DataSourceService implements ApplicationRunner {
     @Resource
     private Cache<Long, SysDataSource> sysDataSourceCache;
 
-    private final Map<Long, DatasourceClient> datasourceClientMap = new HashMap<>();
+    @Resource
+    private Cache<Long, DatasourceClient> datasourceClientCache;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         List<SysDataSource> dataSourceList = selectAll();
         for (SysDataSource dataSource : dataSourceList) {
-            datasourceClientMap.put(dataSource.getId(), createClient(dataSource));
+            datasourceClientCache.put(dataSource.getId(), createClient(dataSource));
         }
     }
 
@@ -98,7 +97,7 @@ public class DataSourceService implements ApplicationRunner {
         if (id == null) {
             saveItem.setStatus(StatusEnum.STOP.getCode());
             sysDataSourceMapper.insertSelective(saveItem);
-            datasourceClientMap.put(id, createClient(saveItem));
+            datasourceClientCache.put(saveItem.getId(), createClient(saveItem));
             return;
         }
         saveItem.setId(id);
@@ -129,9 +128,9 @@ public class DataSourceService implements ApplicationRunner {
             List<SysAppDatabaseConfig> appConfigs =
                     sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setDatasourceId(id));
             Assert.isTrue(CollectionUtils.isNotEmpty(appConfigs), "无应用监听配置，请先配置再开启");
-            datasourceClientMap.get(id).start();
+            Objects.requireNonNull(datasourceClientCache.getIfPresent(id)).start();
         } else {
-            datasourceClientMap.get(id).stop();
+            Objects.requireNonNull(datasourceClientCache.getIfPresent(id)).stop();
             dataSource.setLastStopTime(LocalDateTime.now());
         }
         sysDataSourceMapper.updateByPrimaryKeySelective(dataSource);
@@ -150,7 +149,7 @@ public class DataSourceService implements ApplicationRunner {
         Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
         sysDataSourceCache.invalidate(id);
-        datasourceClientMap.remove(id);
+        datasourceClientCache.invalidate(id);
     }
 
     /**
@@ -160,7 +159,7 @@ public class DataSourceService implements ApplicationRunner {
      * @return List
      */
     public List<String> getDatabase(Long id) {
-        return datasourceClientMap.get(id).getDatabase();
+        return Objects.requireNonNull(datasourceClientCache.getIfPresent(id)).getDatabase();
     }
 
     /**
@@ -171,7 +170,7 @@ public class DataSourceService implements ApplicationRunner {
      * @return List
      */
     public List<String> getDatabaseTables(Long id, String database) {
-        return datasourceClientMap.get(id).getDatabaseTables(database);
+        return Objects.requireNonNull(datasourceClientCache.getIfPresent(id)).getDatabaseTables(database);
     }
 
 }

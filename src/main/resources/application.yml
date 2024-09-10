@@ -25,6 +25,7 @@ app:
   sql-database: select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME not in ('mysql', 'information_schema', 'performance_schema', 'sys')
   sql-database-table: select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA ='{}'
   sql-table-struct: select table_schema,table_name,column_name,ordinal_position from information_schema.columns where table_schema = '{}' and table_name = '{}'
+  sql-increment-search: select * from {}.{} where {} > '{}'
 
 dictionary:
   # 数据字典类型，xlsx-从excel中获取，database-从数据库中获取，需要配置查询sql，remote-远程获取，需要配置url

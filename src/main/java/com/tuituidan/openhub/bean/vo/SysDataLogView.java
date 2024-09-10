@@ -2,6 +2,7 @@ package com.tuituidan.openhub.bean.vo;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.openhub.translator.DatasourceAnno;
 import com.tuituidan.tresdin.datatranslate.translator.dict.DictType;
 import java.time.LocalDateTime;
@@ -41,12 +42,12 @@ public class SysDataLogView {
 
     private String dataLog;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     private LocalDateTime createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     private LocalDateTime updateTime;
 
     private List<String> children = new ArrayList<>();

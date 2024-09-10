@@ -73,4 +73,15 @@ public class DatabaseConfigController {
         databaseConfigService.delete(id);
     }
 
+    /**
+     * handler
+     *
+     * @param id id
+     * @param incrementValue incrementValue
+     */
+    @PostMapping("/{id}/handler/{incrementValue}")
+    public void handler(@PathVariable Long id, @PathVariable String incrementValue) {
+        databaseConfigService.handler(id, incrementValue);
+    }
+
 }

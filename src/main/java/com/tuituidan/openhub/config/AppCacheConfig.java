@@ -6,6 +6,7 @@ import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
+import com.tuituidan.openhub.service.DatasourceClient;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class AppCacheConfig {
+
+    /**
+     * datasourceClientCache
+     *
+     * @return Cache
+     */
+    @Bean
+    public Cache<Long, DatasourceClient> datasourceClientCache() {
+        return Caffeine.newBuilder().build();
+    }
 
     /**
      * databaseConfigCache

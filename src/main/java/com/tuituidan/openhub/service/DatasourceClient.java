@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,6 +39,7 @@ public abstract class DatasourceClient {
 
     private BinaryLogClient binaryLogClient;
 
+    @Getter
     private final JdbcTemplate jdbcTemplate;
 
     private final Map<Long, TableMapEventData> configMap = new HashMap<>();

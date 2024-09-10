@@ -1,7 +1,7 @@
 package com.tuituidan.openhub.bean.dto;
 
-import com.alibaba.fastjson2.JSONObject;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -28,6 +28,6 @@ public class PostTableData {
 
     private List<String> columns;
 
-    private List<JSONObject> dataList;
+    private List<Map<String, Object>> dataList;
 
 }

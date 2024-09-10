@@ -2,6 +2,7 @@ package com.tuituidan.openhub.bean.entity;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.tresdin.datatranslate.translator.dict.DictType;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
@@ -50,13 +51,13 @@ public class SysDatabaseConfig implements IEntity<SysDatabaseConfig, Long> {
     @DictType("2000000001")
     private String incrementType;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 

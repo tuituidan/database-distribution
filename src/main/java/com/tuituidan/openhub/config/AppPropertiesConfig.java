@@ -34,6 +34,11 @@ public class AppPropertiesConfig {
     private String sqlTableStruct;
 
     /**
+     * 增量查询
+     */
+    private String sqlIncrementSearch;
+
+    /**
      * jdbcUrl模版.
      */
     private String jdbcUrlTemplate;

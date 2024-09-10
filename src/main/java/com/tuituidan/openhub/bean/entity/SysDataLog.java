@@ -1,5 +1,8 @@
 package com.tuituidan.openhub.bean.entity;
 
+import com.alibaba.fastjson2.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -46,9 +49,13 @@ public class SysDataLog implements IEntity<SysDataLog, Long> {
     @Column(name = "data_log")
     private String dataLog;
 
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
+    @JsonFormat(pattern = Consts.TIME_PATTERN)
+    @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 
