@@ -79,7 +79,7 @@ export default {
       loading: false,
       dataList: [],
       selectRow: '',
-      datasourceId: '',
+      source: {},
     };
   },
   mounted() {
@@ -93,10 +93,10 @@ export default {
     },
     loadConfig(row) {
       if (row) {
-        this.datasourceId = row.id;
+        this.source = row;
       }
       this.loading = true;
-      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: this.datasourceId}})
+      this.$http.get(`/api/v1/database_config`, {params: {datasourceId: this.source.id}})
         .then(res => {
           this.dataList = res;
         })
@@ -106,7 +106,7 @@ export default {
     },
     /** 修改按钮操作 */
     openEditDialog(row) {
-      this.$refs.refDatabaseConfigEdit.open(this.datasourceId, row);
+      this.$refs.refDatabaseConfigEdit.open(this.source.id, row);
     },
     /** 删除按钮操作 */
     handleDelete(row) {
@@ -123,7 +123,7 @@ export default {
       if (!this.selections.length) {
         return;
       }
-      this.$refs.refDatabasePush.open(this.datasourceId, this.selections)
+      this.$refs.refDatabasePush.open(this.source, this.selections)
     },
   }
 }

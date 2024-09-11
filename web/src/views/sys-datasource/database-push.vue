@@ -41,12 +41,12 @@ export default {
     }
   },
   methods: {
-    open(datasourceId, rows) {
+    open(source, rows) {
       this.incrementType = rows[0].incrementType;
       this.form = {
         ids: rows.map(item => item.id),
-        datasourceId: datasourceId,
-        incrementValue: '',
+        datasourceId: source.id,
+        incrementValue: source.lastStopTime,
       };
       this.$nextTick(() => {
         this.$refs.form.clearValidate();
