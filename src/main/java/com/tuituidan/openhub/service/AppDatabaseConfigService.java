@@ -83,7 +83,7 @@ public class AppDatabaseConfigService {
                         .setName(StringExtUtils.format("{}({}:{})",
                                 item.getName(), item.getHost(), item.getPort())))
                 .collect(Collectors.toList());
-        Map<String, TreeView> databaseNodeMap = new HashMap<>();
+        Map<String, TreeView> databaseNodeMap = new HashMap<>(databaseConfigs.size());
         for (SysDatabaseConfig config : databaseConfigs) {
             String dbNodeKey = config.getDatasourceId() + config.getDatabaseName();
             TreeView dbNode = databaseNodeMap.computeIfAbsent(dbNodeKey,

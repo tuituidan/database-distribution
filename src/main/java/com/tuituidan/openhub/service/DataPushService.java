@@ -86,7 +86,8 @@ public class DataPushService {
      * @param dataList dataList
      * @param sysApp sysApp
      */
-    public void push(SysDatabaseConfigView configView, SysPushLog pushLog, List<Map<String, Object>> dataList, SysApp sysApp) {
+    public void push(SysDatabaseConfigView configView, SysPushLog pushLog,
+            List<Map<String, Object>> dataList, SysApp sysApp) {
         PostTableData postData = buildPostTableData(configView, DataChangeEnum.REPLACE, dataList);
         pushToApp(pushLog, sysApp, postData);
     }

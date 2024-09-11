@@ -152,7 +152,8 @@ public abstract class DatasourceClient {
      * @return List
      */
     public List<String> getDatabaseTables(String database) {
-        return jdbcTemplate.queryForList(StringExtUtils.format(appConfig.getSqlDatabaseTable(), database), String.class);
+        return jdbcTemplate.queryForList(StringExtUtils.format(appConfig.getSqlDatabaseTable(),
+                database), String.class);
     }
 
 }
