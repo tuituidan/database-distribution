@@ -12,6 +12,16 @@
           </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="推送状态" prop="status">
+        <el-select v-model="queryParams.status" clearable placeholder="请选择推送状态">
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.code"
+            :label="item.name"
+            :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="日志ID" prop="dataLogId">
         <el-input
           v-model="queryParams.dataLogId"
@@ -25,10 +35,25 @@
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
-
-    <el-table v-loading="loading" :data="table.data"
+    <el-row :gutter="10" class="mb8 mt5">
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          size="small"
+          icon="el-icon-upload"
+          @click="handlerPush"
+        >重新推送
+        </el-button>
+      </el-col>
+    </el-row>
+    <el-table v-loading="loading"
+              :data="table.data"
+              ref="dataTable"
+              @selection-change="selections = $refs.dataTable.selection"
               border stripe
               :default-sort="{prop: 'pushTime', order: 'descending'}">
+      <el-table-column type="selection" width="50" align="center"/>
       <el-table-column label="序号" type="index" width="50" align="center" :index="table.index"/>
       <el-table-column label="日志ID" align="center" prop="dataLogId" show-overflow-tooltip/>
       <el-table-column label="应用名称" align="center" prop="appName" show-overflow-tooltip/>
@@ -50,6 +75,7 @@
       :limit.sync="queryParams.limit"
       @pagination="pageChange"
     />
+    <push-dialog ref="refPushDialog" @refresh="handleQuery"></push-dialog>
   </div>
 </template>
 
@@ -57,8 +83,13 @@
 
 export default {
   name: "Index",
+  components: {
+    'push-dialog': () => import('./push-dialog'),
+  },
   data() {
     return {
+      // 选中数组
+      selections: [],
       // 遮罩层
       loading: false,
       // 查询参数
@@ -68,9 +99,20 @@ export default {
         limit: 10,
         dataLogId: '',
         appId: '',
+        status: '',
         sort: '-pushTime',
       },
       appList: [],
+      statusOptions: [
+        {
+          code: '200',
+          name: '成功',
+        },
+        {
+          code: '500',
+          name: '失败',
+        }
+      ],
       table: {
         total: 0,
         index: 1,
@@ -112,10 +154,14 @@ export default {
         limit: 10,
         dataLogId: '',
         appId: '',
+        status: '',
         sort: this.queryParams.sort
       };
       this.handleQuery();
     },
+    handlerPush() {
+      this.$refs.refPushDialog.open(this.selections)
+    }
   }
 };
 </script>

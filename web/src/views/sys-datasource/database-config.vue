@@ -30,10 +30,11 @@
       stripe
       border
       ref="dataTable"
+      :header-cell-class-name="headerCellClass"
       v-loading="loading"
       @selection-change="selections = $refs.dataTable.selection"
       :data="dataList">
-      <el-table-column type="selection" width="50" align="center" :selectable="tableSelectable"/>
+      <el-table-column label="" type="selection" width="50" align="center" :selectable="tableSelectable"/>
       <el-table-column label="数据库名" align="center" prop="databaseName" :show-overflow-tooltip="true"/>
       <el-table-column label="表名" align="center" prop="tableName" :show-overflow-tooltip="true"/>
       <el-table-column label="表说明" align="center" prop="tableComment" :show-overflow-tooltip="true"/>
@@ -69,7 +70,7 @@ export default {
   name: "data-source-list",
   components: {
     'database-config-edit': () => import('./database-config-edit'),
-    'database-push': () => import('./database-push')
+    'database-push': () => import('./database-push'),
   },
   data() {
     return {
@@ -90,6 +91,11 @@ export default {
         return true;
       }
       return this.selections[0].incrementType === row.incrementType
+    },
+    headerCellClass(row) {
+      if (row.columnIndex === 0 && row.rowIndex === 0) {
+        return 'table-cell-hidden';
+      }
     },
     loadConfig(row) {
       if (row) {
@@ -129,6 +135,12 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+.el-table {
+  ::v-deep .table-cell-hidden {
+    .el-checkbox {
+      display: none;
+    }
+  }
+}
 </style>

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,6 +66,26 @@ public class DataLogController {
     @DataTranslate
     public PageData<List<SysPushLog>> selectPushPage(PageParam pageParam, SysPushLog search) {
         return dataLogService.selectPushPage(pageParam, search);
+    }
+
+    /**
+     * getFailPushLogIds
+     *
+     * @return List
+     */
+    @GetMapping("/push_log/fail_count")
+    public List<Long> getFailPushLogIds() {
+        return dataLogService.getFailPushLogIds();
+    }
+
+    /**
+     * pushLog
+     *
+     * @param id id
+     */
+    @PostMapping("/push_log/{id}")
+    public void pushLog(@PathVariable Long id) {
+        dataLogService.pushLog(id);
     }
 
 }

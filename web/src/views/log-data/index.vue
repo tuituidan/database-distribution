@@ -24,8 +24,10 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="table.data"
+    <el-table v-loading="loading"
+              :data="table.data"
               border stripe
+              ref="dataTable"
               @expand-change="expandChange"
               :default-sort="{prop: 'createTime', order: 'descending'}">
       <el-table-column type="expand" label="展开">
@@ -122,7 +124,11 @@ export default {
       };
       this.handleQuery();
     },
-    expandChange(row) {
+    expandChange(row, expandedRows) {
+      if (!expandedRows.map(item => item.id).includes(row.id)) {
+        // 控制收起时不加载数据
+        return;
+      }
       this.$http.get(`/api/v1/data_log/${row.id}/push_log`)
         .then(res => {
           row.children = res;
