@@ -3,16 +3,26 @@
              :close-on-click-modal="false"
              width="600px" append-to-body>
     <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
-      <el-form-item label="应用标识" prop="appKey">
-        <el-input v-model="form.appKey" placeholder="请输入应用标识" maxlength="100" v-trim/>
-      </el-form-item>
       <el-form-item label="应用名称" prop="appName">
         <el-input v-model="form.appName" placeholder="请输入应用名称" maxlength="100" v-trim/>
       </el-form-item>
-      <el-form-item label="应用秘钥" prop="appSecret">
-        <el-input v-model="form.appSecret" placeholder="请输入应用秘钥" maxlength="100" v-trim/>
+      <el-form-item label="应用标识" prop="appKey">
+        <el-input v-model="form.appKey" :disabled="Boolean(this.form.id)" placeholder="请输入应用标识" maxlength="100" v-trim>
+          <el-button slot="append" v-if="!Boolean(this.form.id)" @click="generateKey('appKey')">随机生成</el-button>
+        </el-input>
       </el-form-item>
-      <el-form-item label="推送地址" prop="url">
+      <el-form-item label="应用秘钥" prop="appSecret">
+        <el-input v-model="form.appSecret" disabled placeholder="请输入应用秘钥" maxlength="100" v-trim>
+          <el-button slot="append" v-if="!Boolean(this.form.id)" @click="generateKey('appSecret')">随机生成</el-button>
+        </el-input>
+      </el-form-item>
+      <el-form-item prop="url">
+        <span slot="label">
+          推送地址
+          <el-tooltip content='推送数据地址需为POST接口'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
         <el-input v-model="form.url" placeholder="请输入推送地址" maxlength="400" v-trim/>
       </el-form-item>
     </el-form>
@@ -24,6 +34,8 @@
 </template>
 
 <script>
+import {uuid} from "@/utils";
+
 export default {
   name: "sys-app-edit",
   data() {
@@ -57,13 +69,18 @@ export default {
   methods: {
     open(row) {
       this.resetForm();
-      if(row){
+      if (row) {
         this.form = {...row};
         this.title = '编辑应用';
-      }else{
+      } else {
+        this.form.appKey = uuid('');
+        this.form.appSecret = uuid('');
         this.title = '新增应用';
       }
       this.show = true;
+    },
+    generateKey(key){
+      this.form[key] = uuid('')
     },
     resetForm() {
       this.form = {

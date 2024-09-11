@@ -289,6 +289,17 @@ export function createUniqueString() {
 }
 
 /**
+ * uuid
+ * @returns {string}
+ */
+export function uuid(sep = '-') {
+  const S4 = () => (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+  return (S4() + S4() + sep + S4() + sep + S4() + sep + S4() + sep + S4() + S4() + S4());
+}
+
+
+
+/**
  * Check if an element has a class
  * @param {HTMLElement} elm
  * @param {string} cls
