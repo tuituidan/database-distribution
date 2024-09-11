@@ -39,6 +39,11 @@ public class AppPropertiesConfig {
     private String sqlIncrementSearch;
 
     /**
+     * 主键查询
+     */
+    private String sqlPrimaryKeySearch;
+
+    /**
      * jdbcUrl模版.
      */
     private String jdbcUrlTemplate;

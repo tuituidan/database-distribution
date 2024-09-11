@@ -1,6 +1,5 @@
 package com.tuituidan.openhub.bean.vo;
 
-import com.tuituidan.openhub.bean.entity.SysApp;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
@@ -40,7 +39,5 @@ public class SysDatabaseConfigView {
     private LocalDateTime updateTime;
 
     private List<TableStruct> tableStruct;
-
-    private List<SysApp> appList;
 
 }

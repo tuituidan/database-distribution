@@ -1,6 +1,7 @@
 <template>
   <el-dialog title="数据重推" :visible.sync="show"
              :close-on-click-modal="false"
+             @close="onCloseDialog"
              width="600px" append-to-body>
     <p v-if="noticeText">
       <el-alert
@@ -78,6 +79,9 @@ export default {
     // 取消按钮
     cancel() {
       this.show = false;
+    },
+    onCloseDialog() {
+      this.$emit('refresh');
     },
   }
 }

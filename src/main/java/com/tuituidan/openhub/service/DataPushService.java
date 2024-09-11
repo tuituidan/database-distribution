@@ -8,6 +8,7 @@ import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
+import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.tresdin.mybatis.util.SnowFlake;
@@ -66,23 +67,31 @@ public class DataPushService {
      * @param type type
      * @param dataList dataList
      */
-    public void push(SysDatabaseConfigView configView, String type, List<Map<String, Object>> dataList) {
-        PostTableData postData = new PostTableData().setDataList(dataList)
-                .setTable(configView.getTableName())
-                .setDatabase(configView.getDatabaseName())
-                .setType(type)
-                .setColumns(configView.getTableStruct().stream()
-                        .map(TableStruct::getColumnName).collect(Collectors.toList()))
-                .setPrimaryKey(configView.getPrimaryKey());
+    public void push(SysDatabaseConfigView configView, DataChangeEnum type,
+            List<Map<String, Object>> dataList, List<SysApp> appList) {
+        PostTableData postData = buildPostTableData(configView, type, dataList);
         Long dataLogId = createSysDataLog(configView, type, dataList);
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        for (SysApp sysApp : configView.getAppList()) {
-            futures.add(CompletableUtils.runAsync(() -> pushToApp(sysApp, dataLogId, postData)));
+        for (SysApp sysApp : appList) {
+            futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData)));
         }
         CompletableUtils.waitAll(futures);
     }
 
-    private Long createSysDataLog(SysDatabaseConfigView configView, String type,
+    /**
+     * push
+     *
+     * @param configView configView
+     * @param pushLog pushLog
+     * @param dataList dataList
+     * @param sysApp sysApp
+     */
+    public void push(SysDatabaseConfigView configView, SysPushLog pushLog, List<Map<String, Object>> dataList, SysApp sysApp) {
+        PostTableData postData = buildPostTableData(configView, DataChangeEnum.REPLACE, dataList);
+        pushToApp(pushLog, sysApp, postData);
+    }
+
+    private Long createSysDataLog(SysDatabaseConfigView configView, DataChangeEnum type,
             List<Map<String, Object>> dataList) {
         SysDataLog dataLog = new SysDataLog()
                 .setId(SnowFlake.newId())
@@ -91,18 +100,35 @@ public class DataPushService {
                 .setDatabaseName(configView.getDatabaseName())
                 .setTableName(configView.getTableName())
                 .setPrimaryKey(configView.getPrimaryKey())
-                .setOperType(type)
+                .setOperType(type.getCode())
                 .setDataLog(JSONObject.toJSONString(dataList));
         sysDataLogMapper.insert(dataLog);
         return dataLog.getId();
     }
 
-    private void pushToApp(SysApp sysApp, Long dataLogId, PostTableData postData) {
+    private PostTableData buildPostTableData(SysDatabaseConfigView configView, DataChangeEnum type,
+            List<Map<String, Object>> dataList) {
+        return new PostTableData().setDataList(dataList)
+                .setTable(configView.getTableName())
+                .setDatabase(configView.getDatabaseName())
+                .setType(type.getCode())
+                .setColumns(configView.getTableStruct().stream()
+                        .map(TableStruct::getColumnName).collect(Collectors.toList()))
+                .setPrimaryKey(configView.getPrimaryKey());
+    }
+
+    private void pushToApp(Long dataLogId, SysApp sysApp, PostTableData postData) {
         SysPushLog pushLog = new SysPushLog();
         long startTime = System.currentTimeMillis();
         pushLog.setAppId(sysApp.getId())
                 .setPushTime(LocalDateTime.now())
                 .setDataLogId(dataLogId);
+        pushToApp(pushLog, sysApp, postData);
+        pushLog.setCostTime(System.currentTimeMillis() - startTime);
+        sysPushLogMapper.insert(pushLog);
+    }
+
+    private void pushToApp(SysPushLog pushLog, SysApp sysApp, PostTableData postData) {
         try {
             ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
                     .header("AppKey", sysApp.getAppKey())
@@ -118,8 +144,6 @@ public class DataPushService {
             pushLog.setResponse("未知异常：" + StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 3990));
             pushLog.setStatus(Objects.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
-        pushLog.setCostTime(System.currentTimeMillis() - startTime);
-        sysPushLogMapper.insert(pushLog);
     }
 
     private String getToken(SysApp sysApp) {

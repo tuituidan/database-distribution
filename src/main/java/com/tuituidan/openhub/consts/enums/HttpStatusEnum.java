@@ -16,7 +16,8 @@ public enum HttpStatusEnum {
     /**
      * 成功
      */
-    OK("200", "成功");
+    OK("200", "成功"),
+    FAIL("500", "失败");
 
     private String code;
 

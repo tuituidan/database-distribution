@@ -1,36 +1,15 @@
 package com.tuituidan.openhub.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.shyiko.mysql.binlog.event.TableMapEventData;
-import com.tuituidan.openhub.bean.dto.PushHandlerParam;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
-import com.tuituidan.openhub.bean.vo.TableStruct;
-import com.tuituidan.openhub.config.AppPropertiesConfig;
-import com.tuituidan.openhub.consts.Consts;
-import com.tuituidan.openhub.consts.enums.DataChangeEnum;
-import com.tuituidan.openhub.consts.enums.IncrementTypeEnum;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
-import com.tuituidan.tresdin.util.StringExtUtils;
-import com.tuituidan.tresdin.util.thread.CompletableUtils;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,13 +20,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -78,16 +52,7 @@ public class DatabaseConfigService implements ApplicationRunner {
     private Cache<Long, List<SysApp>> databaseAppConfigCache;
 
     @Resource
-    private AppPropertiesConfig appPropertiesConfig;
-
-    @Resource
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
-
-    @Resource
-    private DataPushService dataPushService;
-
-    @Resource
-    private Cache<Long, DatasourceClient> datasourceClientCache;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -161,130 +126,6 @@ public class DatabaseConfigService implements ApplicationRunner {
         String cacheKey = config.getDatabaseName() + config.getTableName();
         databaseConfigCache.invalidate(cacheKey);
         databaseConfigViewCache.invalidate(id);
-    }
-
-    /**
-     * analyse
-     *
-     * @param jdbcTemplate jdbcTemplate
-     * @param tableEvent tableEvent
-     * @param type type
-     * @param rows rows
-     */
-    public void analyse(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, String type,
-            List<Serializable[]> rows) {
-        String cacheKey = tableEvent.getDatabase() + tableEvent.getTable();
-        SysDatabaseConfig config = databaseConfigCache.getIfPresent(cacheKey);
-        if (config == null) {
-            return;
-        }
-        List<SysApp> appList = databaseAppConfigCache.getIfPresent(config.getId());
-        if (CollectionUtils.isEmpty(appList)) {
-            return;
-        }
-        CompletableUtils.runAsync(() -> {
-            SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                    k -> getDatabaseConfigView(jdbcTemplate, config, appList)));
-            dataPushService.push(configView, type, buildDataList(configView.getTableStruct(), rows));
-        }).exceptionally(ex -> {
-            log.error("数据日志解析异常", ex);
-            return null;
-        });
-    }
-
-    /**
-     * handler
-     *
-     * @param param param
-     */
-    public void handler(PushHandlerParam param) {
-        JdbcTemplate jdbcTemplate = Objects.requireNonNull(datasourceClientCache.getIfPresent(param.getDatasourceId()))
-                .getJdbcTemplate();
-        for (Long configId : param.getIds()) {
-            SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(configId);
-            Assert.notNull(config, "配置查询失败");
-            checkIncrementValue(config.getIncrementType(), param.getIncrementValue());
-            List<SysApp> appList = databaseAppConfigCache.getIfPresent(configId);
-            if (CollectionUtils.isEmpty(appList)) {
-                return;
-            }
-            SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                    k -> getDatabaseConfigView(jdbcTemplate, config, appList)));
-            List<Map<String, Object>> dataList = buildDataList(jdbcTemplate, config, param.getIncrementValue());
-            for (Map<String, Object> item : dataList) {
-                // 拆成单条，避免数据过大
-                dataPushService.push(configView, DataChangeEnum.REPLACE.getCode(), Collections.singletonList(item));
-            }
-        }
-
-    }
-
-    private SysDatabaseConfigView getDatabaseConfigView(JdbcTemplate jdbcTemplate,
-            SysDatabaseConfig config, List<SysApp> appList) {
-        SysDatabaseConfigView configView = BeanExtUtils.convert(config, SysDatabaseConfigView::new);
-        configView.setTableStruct(jdbcTemplate.query(
-                StringExtUtils.format(appPropertiesConfig.getSqlTableStruct(),
-                        config.getDatabaseName(), config.getTableName()),
-                new BeanPropertyRowMapper<>(TableStruct.class)));
-        configView.getTableStruct().sort(Comparator.comparingInt(TableStruct::getOrdinalPosition));
-        configView.setAppList(appList);
-        return configView;
-    }
-
-    private List<Map<String, Object>> buildDataList(JdbcTemplate jdbcTemplate,
-            SysDatabaseConfig config, String incrementValue) {
-        String sql = StringExtUtils.format(appPropertiesConfig.getSqlIncrementSearch(),
-                config.getDatabaseName(),
-                config.getTableName(),
-                config.getIncrementKey(),
-                incrementValue);
-        return jdbcTemplate.queryForList(sql);
-    }
-
-    private List<Map<String, Object>> buildDataList(List<TableStruct> tableStructs, List<Serializable[]> rows) {
-        List<Map<String, Object>> list = new ArrayList<>();
-        for (Serializable[] row : rows) {
-            Map<String, Object> item = new HashMap<>(row.length);
-            for (TableStruct struct : tableStructs) {
-                item.put(struct.getColumnName(), formatData(row[struct.getOrdinalPosition() - 1]));
-            }
-            list.add(item);
-        }
-        return list;
-    }
-
-    private void checkIncrementValue(String incrementType, String incrementValue) {
-        if (IncrementTypeEnum.DATE.getCode().equals(incrementType)) {
-            LocalDateTime date = LocalDateTime.parse(incrementValue, Consts.TIME_FORMATTER);
-            Assert.notNull(date, "时间转换失败");
-        }
-        if (IncrementTypeEnum.NUMBER.getCode().equals(incrementType)) {
-            Long number = NumberUtils.createLong(incrementValue);
-            Assert.notNull(number, "数字转换失败");
-        }
-    }
-
-    private Object formatData(Object data) {
-        if (data instanceof byte[]) {
-            try {
-                return IOUtils.toString(new ByteArrayInputStream((byte[]) data), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("数据转换错误", e);
-            }
-        }
-        if (data instanceof BitSet) {
-            return ((BitSet) data).get(0);
-        }
-        if (data instanceof Timestamp) {
-            return ((Timestamp) data).toLocalDateTime().format(Consts.TIME_FORMATTER);
-        }
-        if (data instanceof java.sql.Date || data instanceof java.sql.Time) {
-            return data.toString();
-        }
-        if (data instanceof Date) {
-            return DateFormatUtils.format((Date) data, Consts.TIME_PATTERN);
-        }
-        return data;
     }
 
 }

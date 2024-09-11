@@ -7,6 +7,7 @@ import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
@@ -41,9 +42,6 @@ public class DataSourceService implements ApplicationRunner {
     private SysDataSourceMapper sysDataSourceMapper;
 
     @Resource
-    private DatabaseConfigService databaseConfigService;
-
-    @Resource
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
 
     @Resource
@@ -58,8 +56,11 @@ public class DataSourceService implements ApplicationRunner {
     @Resource
     private Cache<Long, DatasourceClient> datasourceClientCache;
 
+    @Resource
+    private DataAnalyseService dataAnalyseService;
+
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         List<SysDataSource> dataSourceList = selectAll();
         for (SysDataSource dataSource : dataSourceList) {
             datasourceClientCache.put(dataSource.getId(), createClient(dataSource));
@@ -69,9 +70,9 @@ public class DataSourceService implements ApplicationRunner {
     private DatasourceClient createClient(SysDataSource dataSource) {
         return new DatasourceClient(dataSource, appPropertiesConfig) {
             @Override
-            public void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, String type,
+            public void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
                     List<Serializable[]> rows) {
-                databaseConfigService.analyse(jdbcTemplate, tableEvent, type, rows);
+                dataAnalyseService.analyse(jdbcTemplate, tableEvent, type, rows);
             }
         };
     }

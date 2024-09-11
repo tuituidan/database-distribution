@@ -3,6 +3,7 @@ package com.tuituidan.openhub.controller;
 import com.tuituidan.openhub.bean.dto.PushHandlerParam;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.service.DataAnalyseService;
 import com.tuituidan.openhub.service.DatabaseConfigService;
 import com.tuituidan.tresdin.consts.TresdinConsts;
 import com.tuituidan.tresdin.datatranslate.annotation.DataTranslate;
@@ -30,6 +31,9 @@ public class DatabaseConfigController {
 
     @Resource
     private DatabaseConfigService databaseConfigService;
+
+    @Resource
+    private DataAnalyseService dataAnalyseService;
 
     /**
      * select
@@ -81,7 +85,7 @@ public class DatabaseConfigController {
      */
     @PostMapping("/handler")
     public void handler(@RequestBody PushHandlerParam param) {
-        databaseConfigService.handler(param);
+        dataAnalyseService.analyse(param.getDatasourceId(), param.getIds(), param.getIncrementValue());
     }
 
 }

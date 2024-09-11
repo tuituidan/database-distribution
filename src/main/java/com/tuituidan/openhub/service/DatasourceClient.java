@@ -8,6 +8,7 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
+import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
@@ -52,7 +53,7 @@ public abstract class DatasourceClient {
      * @param type type
      * @param rows rows
      */
-    public abstract void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, String type,
+    public abstract void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
             List<Serializable[]> rows);
 
     /**
@@ -116,7 +117,7 @@ public abstract class DatasourceClient {
         if (data instanceof UpdateRowsEventData) {
             UpdateRowsEventData rowsData = (UpdateRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), "update",
+                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.UPDATE,
                         rowsData.getRows().stream().map(Entry::getValue).collect(Collectors.toList()));
             }
             return;
@@ -124,14 +125,14 @@ public abstract class DatasourceClient {
         if (data instanceof WriteRowsEventData) {
             WriteRowsEventData rowsData = (WriteRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), "insert", rowsData.getRows());
+                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.INSERT, rowsData.getRows());
             }
             return;
         }
         if (data instanceof DeleteRowsEventData) {
             DeleteRowsEventData rowsData = (DeleteRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), "delete", rowsData.getRows());
+                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.DELETE, rowsData.getRows());
             }
         }
     }

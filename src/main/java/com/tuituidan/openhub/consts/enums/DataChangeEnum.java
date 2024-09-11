@@ -14,9 +14,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum DataChangeEnum {
     /**
-     * 时间
+     * 手动
      */
-    REPLACE("replace", "覆盖");
+    REPLACE("replace", "手动"),
+    INSERT("insert", "插入"),
+    UPDATE("update", "修改"),
+    DELETE("delete", "删除");
 
     private String code;
 
