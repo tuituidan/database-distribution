@@ -149,11 +149,24 @@ public abstract class DatasourceClient {
     /**
      * getDatabaseTables
      *
+     * @param database database
      * @return List
      */
     public List<String> getDatabaseTables(String database) {
         return jdbcTemplate.queryForList(StringExtUtils.format(appConfig.getSqlDatabaseTable(),
                 database), String.class);
+    }
+
+    /**
+     * getDatabaseTables
+     *
+     * @param database database
+     * @param tableName tableName
+     * @return List
+     */
+    public List<String> getDatabaseTablesColumn(String database, String tableName) {
+        return jdbcTemplate.queryForList(StringExtUtils.format(appConfig.getSqlDatabaseTableColumn(),
+                database, tableName), String.class);
     }
 
 }

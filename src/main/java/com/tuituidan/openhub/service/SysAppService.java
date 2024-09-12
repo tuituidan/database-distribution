@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
-import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
@@ -38,9 +37,6 @@ public class SysAppService {
     @Resource
     private Cache<Long, List<SysApp>> databaseAppConfigCache;
 
-    @Resource
-    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
-
     /**
      * selectAll
      *
@@ -69,7 +65,6 @@ public class SysAppService {
         Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
                 .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
         databaseAppConfigCache.invalidateAll(configIds);
-        databaseConfigViewCache.invalidateAll(configIds);
     }
 
     private void checkUnique(Long id, SysAppParam param) {
@@ -85,11 +80,11 @@ public class SysAppService {
      */
     public void delete(Long id) {
         sysAppMapper.deleteByPrimaryKey(id);
+        sysAppDatabaseConfigMapper.delete(new SysAppDatabaseConfig().setAppId(id));
         sysAppCache.invalidate(id);
         Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
                 .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
         databaseAppConfigCache.invalidateAll(configIds);
-        databaseConfigViewCache.invalidateAll(configIds);
     }
 
 }

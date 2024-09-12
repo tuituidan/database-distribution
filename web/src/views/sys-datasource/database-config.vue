@@ -20,6 +20,7 @@
             plain
             icon="el-icon-plus"
             size="small"
+            :disabled="!this.source.id"
             @click="openEditDialog()"
           >新增
           </el-button>

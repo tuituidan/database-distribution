@@ -29,6 +29,11 @@ public class AppPropertiesConfig {
     private String sqlDatabaseTable;
 
     /**
+     * 获取数据表字段sql.
+     */
+    private String sqlDatabaseTableColumn;
+
+    /**
      * 表结构sql.
      */
     private String sqlTableStruct;

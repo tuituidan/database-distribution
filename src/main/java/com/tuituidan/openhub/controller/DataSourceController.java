@@ -104,4 +104,18 @@ public class DataSourceController {
         return dataSourceService.getDatabaseTables(id, database);
     }
 
+    /**
+     * getDatabaseTablesColumn
+     *
+     * @param id id
+     * @param database database
+     * @param tabeName tableName
+     * @return List
+     */
+    @GetMapping("/{id}/database/{database}/table/{tabeName}")
+    public List<String> getDatabaseTablesColumn(@PathVariable Long id, @PathVariable String database,
+            @PathVariable String tabeName) {
+        return dataSourceService.getDatabaseTablesColumn(id, database, tabeName);
+    }
+
 }

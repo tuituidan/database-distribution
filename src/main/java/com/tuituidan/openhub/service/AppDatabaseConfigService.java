@@ -5,7 +5,6 @@ import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
-import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TreeView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
@@ -48,9 +47,6 @@ public class AppDatabaseConfigService {
 
     @Resource
     private Cache<Long, List<SysApp>> databaseAppConfigCache;
-
-    @Resource
-    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
 
     /**
      * selectIds
@@ -128,7 +124,6 @@ public class AppDatabaseConfigService {
             HashSet<Long> ids = new HashSet<>(pair.getLeft());
             ids.addAll(pair.getRight());
             databaseAppConfigCache.invalidateAll(ids);
-            databaseConfigViewCache.invalidateAll(ids);
         }
     }
 

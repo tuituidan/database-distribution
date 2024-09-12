@@ -8,6 +8,7 @@
           plain
           icon="el-icon-document"
           size="mini"
+          :disabled="!this.appId"
           @click="saveHandler"
         >保存
         </el-button>

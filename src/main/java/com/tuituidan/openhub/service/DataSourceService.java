@@ -174,4 +174,17 @@ public class DataSourceService implements ApplicationRunner {
         return Objects.requireNonNull(datasourceClientCache.getIfPresent(id)).getDatabaseTables(database);
     }
 
+    /**
+     * getDatabaseTablesColumn
+     *
+     * @param id id
+     * @param database database
+     * @param tableName tableName
+     * @return List
+     */
+    public List<String> getDatabaseTablesColumn(Long id, String database, String tableName) {
+        return Objects.requireNonNull(datasourceClientCache.getIfPresent(id))
+                .getDatabaseTablesColumn(database, tableName);
+    }
+
 }
