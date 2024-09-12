@@ -39,7 +39,11 @@
       <el-table-column label="数据库名" align="center" prop="databaseName" :show-overflow-tooltip="true"/>
       <el-table-column label="表名" align="center" prop="tableName" :show-overflow-tooltip="true"/>
       <el-table-column label="表说明" align="center" prop="tableComment" :show-overflow-tooltip="true"/>
-      <el-table-column label="主键名" align="center" prop="primaryKey" :show-overflow-tooltip="true"/>
+      <el-table-column label="主键名" align="center" prop="primaryKey" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <span v-text="Array.isArray(scope.row.primaryKey) && scope.row.primaryKey.join(';')"></span>
+        </template>
+      </el-table-column>
       <el-table-column label="增量字段" align="center" prop="incrementKey" :show-overflow-tooltip="true"/>
       <el-table-column label="增量字段类型" align="center" prop="incrementTypeText" :show-overflow-tooltip="true"/>
       <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.tresdin.datatranslate.translator.dict.DictType;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
+import com.tuituidan.tresdin.mybatis.handler.StringArrayTypeHandler;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -12,6 +13,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import tk.mybatis.mapper.annotation.ColumnType;
 
 /**
  * SysDataSource.
@@ -42,7 +44,8 @@ public class SysDatabaseConfig implements IEntity<SysDatabaseConfig, Long> {
     private String tableComment;
 
     @Column(name = "primary_key")
-    private String primaryKey;
+    @ColumnType(typeHandler = StringArrayTypeHandler.class)
+    private String[] primaryKey;
 
     @Column(name = "increment_key")
     private String incrementKey;

@@ -35,6 +35,7 @@
       <el-form-item label="主键名" prop="primaryKey">
         <el-select v-model="form.primaryKey" placeholder="请选择主键名"
                    clearable
+                   multiple
                    filterable>
           <el-option
             v-for="item in columnOptions"
@@ -98,7 +99,7 @@ export default {
         databaseName: '',
         tableName: '',
         tableComment: '',
-        primaryKey: '',
+        primaryKey: [],
         incrementKey: '',
         incrementType: '',
       },
@@ -153,7 +154,7 @@ export default {
         databaseName: '',
         tableName: '',
         tableComment: '',
-        primaryKey: '',
+        primaryKey: [],
         incrementKey: '',
         incrementType: '',
       };
