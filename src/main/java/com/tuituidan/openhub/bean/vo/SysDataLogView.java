@@ -35,7 +35,7 @@ public class SysDataLogView {
 
     private String tableName;
 
-    private String primaryKey;
+    private String[] primaryKey;
 
     @DictType("2000000002")
     private String operType;

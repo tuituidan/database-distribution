@@ -1,6 +1,5 @@
 package com.tuituidan.openhub;
 
-import java.util.TimeZone;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -18,7 +17,6 @@ public class DatabaseDistributionApplication {
      * @param args args
      */
     public static void main(String[] args) {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC+8"));
         SpringApplication.run(DatabaseDistributionApplication.class, args);
     }
 

@@ -91,7 +91,7 @@ public class DataAnalyseService {
      */
     public void analyse(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
             List<Serializable[]> rows) {
-        String cacheKey = tableEvent.getDatabase() + tableEvent.getTable();
+       String cacheKey = tableEvent.getDatabase() + tableEvent.getTable();
         SysDatabaseConfig config = databaseConfigCache.getIfPresent(cacheKey);
         if (config == null) {
             return;

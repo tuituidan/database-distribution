@@ -28,7 +28,7 @@ public class SysDatabaseConfigView {
 
     private String tableComment;
 
-    private String primaryKey;
+    private String[] primaryKey;
 
     private String incrementKey;
 

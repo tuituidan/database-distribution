@@ -22,7 +22,7 @@ public class PostTableData {
 
     private String table;
 
-    private String primaryKey;
+    private String[] primaryKey;
 
     private String type;
 
