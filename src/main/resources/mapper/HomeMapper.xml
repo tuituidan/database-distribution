@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tuituidan.openhub.mapper.HomeMapper">
+
+    <select id="selectAllDataLogCount" resultType="long">
+        select count(*)
+        from sys_data_log;
+    </select>
+    <select id="selectAllPushLogCount" resultType="long">
+        select count(*)
+        from sys_push_log;
+    </select>
+    <select id="selectPushLogCount" resultType="long">
+        select count(*)
+        from sys_push_log
+        where DATE_FORMAT(push_time, '%Y%m%d') = #{date}
+        <choose>
+            <when test="status == '200'">
+                and status = '200'
+            </when>
+            <otherwise>
+                and status != '200'
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

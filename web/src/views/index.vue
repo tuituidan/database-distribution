@@ -1,19 +1,24 @@
 <template>
-  <div class="app-container">
-    <div>
-      首页
-    </div>
+  <div class="dashboard-editor-container">
+    <panel-group />
   </div>
 </template>
 
 <script>
+import PanelGroup from './dashboard/PanelGroup'
 export default {
-  name: "Index",
-  data() {
-    return {};
+  name: 'Index',
+  components: {
+    PanelGroup,
   },
-  mounted() {
-  },
-  methods: {},
-};
+}
 </script>
+
+<style lang="scss" scoped>
+.dashboard-editor-container {
+  padding: 32px;
+  background-color: rgb(240, 242, 245);
+  position: relative;
+}
+
+</style>
