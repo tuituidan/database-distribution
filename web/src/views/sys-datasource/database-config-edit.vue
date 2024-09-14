@@ -30,7 +30,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="表说明" prop="tableComment">
-        <el-input v-model="form.tableComment" placeholder="请输入表说明" maxlength="30" v-trim/>
+        <el-input v-model="form.tableComment" placeholder="请输入表说明" maxlength="100" v-trim/>
       </el-form-item>
       <el-form-item label="主键名" prop="primaryKey">
         <el-select v-model="form.primaryKey" placeholder="请选择主键名"

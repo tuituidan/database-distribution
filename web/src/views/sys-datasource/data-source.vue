@@ -33,8 +33,7 @@
       <el-table-column label="地址" align="center" prop="host" :show-overflow-tooltip="true"/>
       <el-table-column label="端口" align="center" prop="port" :show-overflow-tooltip="true"/>
       <el-table-column label="用户名" align="center" prop="username" :show-overflow-tooltip="true"/>
-      <el-table-column label="密码" align="center" prop="password" :show-overflow-tooltip="true"/>
-      <el-table-column label="服务ID" align="center" prop="serverId" :show-overflow-tooltip="true"/>
+      <el-table-column label="时区" align="center" prop="timeZone" :show-overflow-tooltip="true"/>
       <el-table-column label="状态" align="center">
         <template slot-scope="scope">
           <el-switch

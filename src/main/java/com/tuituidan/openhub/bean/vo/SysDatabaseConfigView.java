@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * SysDataSource.
@@ -37,6 +38,10 @@ public class SysDatabaseConfigView {
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
+
+    private String timeZone;
+
+    private JdbcTemplate jdbcTemplate;
 
     private List<TableStruct> tableStruct;
 

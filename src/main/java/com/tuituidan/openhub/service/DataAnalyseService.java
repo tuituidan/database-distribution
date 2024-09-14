@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.tuituidan.openhub.bean.entity.SysApp;
+import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
@@ -14,6 +15,8 @@ import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.consts.enums.IncrementTypeEnum;
+import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
+import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
@@ -34,11 +37,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -79,58 +85,69 @@ public class DataAnalyseService {
     private Cache<Long, List<SysApp>> databaseAppConfigCache;
 
     @Resource
-    private Cache<Long, SysApp> sysAppCache;
+    private SysAppMapper sysAppMapper;
+
+    @Resource
+    private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
 
     /**
      * analyse
      *
-     * @param jdbcTemplate jdbcTemplate
      * @param tableEvent tableEvent
      * @param type type
      * @param rows rows
      */
-    public void analyse(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
+    public void analyse(TableMapEventData tableEvent, DataChangeEnum type,
             List<Serializable[]> rows) {
-       String cacheKey = tableEvent.getDatabase() + tableEvent.getTable();
+        String cacheKey = tableEvent.getDatabase() + tableEvent.getTable();
         SysDatabaseConfig config = databaseConfigCache.getIfPresent(cacheKey);
         if (config == null) {
             return;
         }
-        List<SysApp> appList = databaseAppConfigCache.getIfPresent(config.getId());
+        List<SysApp> appList = getAppList(config.getId());
         if (CollectionUtils.isEmpty(appList)) {
             return;
         }
         CompletableUtils.runAsync(() -> {
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                    k -> getDatabaseConfigView(jdbcTemplate, config)));
-            dataPushService.push(configView, type, buildDataList(configView.getTableStruct(), rows), appList);
+                    k -> getDatabaseConfigView(config)));
+            dataPushService.push(configView, type, buildDataList(configView, rows), appList);
         }).exceptionally(ex -> {
             log.error("数据日志解析异常", ex);
             return null;
         });
     }
 
+    private List<SysApp> getAppList(Long configId) {
+        return databaseAppConfigCache.get(configId, key -> {
+            Set<Long> appIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig()
+                            .setDatabaseConfigId(configId)).stream().map(SysAppDatabaseConfig::getAppId)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(appIds)) {
+                return null;
+            }
+            return sysAppMapper.selectByIds(StringUtils.join(appIds, ","));
+        });
+    }
+
     /**
      * analyse
      *
-     * @param datasourceId datasourceId
      * @param configIds configIds
      * @param incrementValue incrementValue
      */
-    public void analyse(Long datasourceId, Long[] configIds, String incrementValue) {
-        JdbcTemplate jdbcTemplate = Objects.requireNonNull(datasourceClientCache.getIfPresent(datasourceId))
-                .getJdbcTemplate();
+    public void analyse(Long[] configIds, String incrementValue) {
         for (Long configId : configIds) {
             SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(configId);
             Assert.notNull(config, "配置查询失败");
             checkIncrementValue(config.getIncrementType(), incrementValue);
-            List<SysApp> appList = databaseAppConfigCache.getIfPresent(configId);
+            List<SysApp> appList = getAppList(configId);
             if (CollectionUtils.isEmpty(appList)) {
                 return;
             }
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                    k -> getDatabaseConfigView(jdbcTemplate, config)));
-            List<Map<String, Object>> dataList = buildDataList(jdbcTemplate, config, incrementValue);
+                    k -> getDatabaseConfigView(config)));
+            List<Map<String, Object>> dataList = buildDataList(configView.getJdbcTemplate(), config, incrementValue);
             for (Map<String, Object> item : dataList) {
                 // 拆成单条，避免数据过大
                 dataPushService.push(configView, DataChangeEnum.REPLACE, Collections.singletonList(item), appList);
@@ -145,27 +162,28 @@ public class DataAnalyseService {
      * @param pushLog pushLog
      */
     public void analyse(SysDataLog dataLog, SysPushLog pushLog) {
-        JdbcTemplate jdbcTemplate =
-                Objects.requireNonNull(datasourceClientCache.getIfPresent(dataLog.getDatasourceId()))
-                        .getJdbcTemplate();
         SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(dataLog.getDatabaseConfigId());
         Assert.notNull(config, "配置查询失败");
-        SysApp sysApp = sysAppCache.getIfPresent(pushLog.getAppId());
+        SysApp sysApp = sysAppMapper.selectByPrimaryKey(pushLog.getAppId());
         if (sysApp == null) {
             return;
         }
         SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
-                k -> getDatabaseConfigView(jdbcTemplate, config)));
-        List<Map<String, Object>> dataList = buildDataList(jdbcTemplate, config, dataLog);
+                k -> getDatabaseConfigView(config)));
+        List<Map<String, Object>> dataList = buildDataList(configView.getJdbcTemplate(), config, dataLog);
         for (Map<String, Object> item : dataList) {
             // 拆成单条，避免数据过大
             dataPushService.push(configView, pushLog, Collections.singletonList(item), sysApp);
         }
     }
 
-    private SysDatabaseConfigView getDatabaseConfigView(JdbcTemplate jdbcTemplate, SysDatabaseConfig config) {
+    private SysDatabaseConfigView getDatabaseConfigView(SysDatabaseConfig config) {
+        DatasourceClient datasourceClient =
+                Objects.requireNonNull(datasourceClientCache.getIfPresent(config.getDatasourceId()));
         SysDatabaseConfigView configView = BeanExtUtils.convert(config, SysDatabaseConfigView::new);
-        configView.setTableStruct(jdbcTemplate.query(
+        configView.setJdbcTemplate(datasourceClient.getJdbcTemplate());
+        configView.setTimeZone(datasourceClient.getDataSource().getTimeZone());
+        configView.setTableStruct(datasourceClient.getJdbcTemplate().query(
                 StringExtUtils.format(appPropertiesConfig.getSqlTableStruct(),
                         config.getDatabaseName(), config.getTableName()),
                 new BeanPropertyRowMapper<>(TableStruct.class)));
@@ -210,12 +228,13 @@ public class DataAnalyseService {
         return result;
     }
 
-    private List<Map<String, Object>> buildDataList(List<TableStruct> tableStructs, List<Serializable[]> rows) {
+    private List<Map<String, Object>> buildDataList(SysDatabaseConfigView configView, List<Serializable[]> rows) {
         List<Map<String, Object>> list = new ArrayList<>();
         for (Serializable[] row : rows) {
             Map<String, Object> item = new HashMap<>(row.length);
-            for (TableStruct struct : tableStructs) {
-                item.put(struct.getColumnName(), formatData(row[struct.getOrdinalPosition() - 1]));
+            for (TableStruct struct : configView.getTableStruct()) {
+                item.put(struct.getColumnName(), formatData(configView.getTimeZone(),
+                        row[struct.getOrdinalPosition() - 1]));
             }
             list.add(item);
         }
@@ -233,7 +252,7 @@ public class DataAnalyseService {
         }
     }
 
-    private Object formatData(Object data) {
+    private Object formatData(String timeZone, Object data) {
         if (data instanceof byte[]) {
             try {
                 return IOUtils.toString(new ByteArrayInputStream((byte[]) data), StandardCharsets.UTF_8);
@@ -247,11 +266,22 @@ public class DataAnalyseService {
         if (data instanceof Timestamp) {
             return ((Timestamp) data).toLocalDateTime().format(Consts.TIME_FORMATTER);
         }
-        if (data instanceof java.sql.Date || data instanceof java.sql.Time) {
+        if (data instanceof java.sql.Date) {
             return data.toString();
         }
+        if (data instanceof java.sql.Time) {
+            if (StringUtils.isBlank(timeZone)) {
+                return data.toString();
+            }
+            return DateFormatUtils.format((Date) data,
+                    DateFormatUtils.ISO_8601_EXTENDED_TIME_FORMAT.getPattern(),
+                    TimeZone.getTimeZone(timeZone));
+        }
         if (data instanceof Date) {
-            return DateFormatUtils.format((Date) data, Consts.TIME_PATTERN);
+            if (StringUtils.isBlank(timeZone)) {
+                return DateFormatUtils.format((Date) data, Consts.TIME_PATTERN);
+            }
+            return DateFormatUtils.format((Date) data, Consts.TIME_PATTERN, TimeZone.getTimeZone(timeZone));
         }
         return data;
     }

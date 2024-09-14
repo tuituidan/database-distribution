@@ -27,4 +27,6 @@ public class SysDataSourceParam {
     private String password;
 
     private Long serverId;
+
+    private String timeZone;
 }

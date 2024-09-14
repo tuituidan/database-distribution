@@ -34,6 +34,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 public abstract class DatasourceClient {
 
+    @Getter
     private final SysDataSource dataSource;
 
     private final AppPropertiesConfig appConfig;
@@ -48,13 +49,11 @@ public abstract class DatasourceClient {
     /**
      * handler
      *
-     * @param jdbcTemplate jdbcTemplate
      * @param tableEvent tableEvent
      * @param type type
      * @param rows rows
      */
-    public abstract void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
-            List<Serializable[]> rows);
+    public abstract void handler(TableMapEventData tableEvent, DataChangeEnum type, List<Serializable[]> rows);
 
     /**
      * DatasourceClient
@@ -117,7 +116,7 @@ public abstract class DatasourceClient {
         if (data instanceof UpdateRowsEventData) {
             UpdateRowsEventData rowsData = (UpdateRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.UPDATE,
+                handler(configMap.get(rowsData.getTableId()), DataChangeEnum.UPDATE,
                         rowsData.getRows().stream().map(Entry::getValue).collect(Collectors.toList()));
             }
             return;
@@ -125,14 +124,14 @@ public abstract class DatasourceClient {
         if (data instanceof WriteRowsEventData) {
             WriteRowsEventData rowsData = (WriteRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.INSERT, rowsData.getRows());
+                handler(configMap.get(rowsData.getTableId()), DataChangeEnum.INSERT, rowsData.getRows());
             }
             return;
         }
         if (data instanceof DeleteRowsEventData) {
             DeleteRowsEventData rowsData = (DeleteRowsEventData) data;
             if (configMap.containsKey(rowsData.getTableId())) {
-                handler(jdbcTemplate, configMap.get(rowsData.getTableId()), DataChangeEnum.DELETE, rowsData.getRows());
+                handler(configMap.get(rowsData.getTableId()), DataChangeEnum.DELETE, rowsData.getRows());
             }
         }
     }

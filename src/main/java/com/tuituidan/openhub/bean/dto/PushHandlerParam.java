@@ -16,8 +16,6 @@ public class PushHandlerParam {
 
     private Long[] ids;
 
-    private Long datasourceId;
-
     private String incrementValue;
 
 }

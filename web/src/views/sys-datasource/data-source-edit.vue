@@ -17,17 +17,32 @@
                          placeholder="请输入数据库端口" maxlength="100" v-trim/>
       </el-form-item>
       <el-form-item label="数据库用户名" prop="username">
-        <el-input v-model="form.username" placeholder="请输入数据库用户名" maxlength="30" v-trim/>
+        <el-input v-model="form.username" placeholder="请输入数据库用户名" maxlength="100" v-trim/>
       </el-form-item>
       <el-form-item label="数据库密码" prop="password">
         <el-input v-model="form.password" show-password placeholder="请输入数据库密码" maxlength="100" v-trim/>
       </el-form-item>
-      <el-form-item label="服务ID" prop="serverId">
+      <el-form-item prop="serverId">
+        <span slot="label">
+          服务ID
+          <el-tooltip content='数据从节点ID，与其他从节点不重复即可'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
         <el-input-number v-model="form.serverId"
                   :min="1"
                   step-strictly
                   :max="65535"
                   placeholder="请输入服务ID" maxlength="100" v-trim/>
+      </el-form-item>
+      <el-form-item label="时区" prop="timeZone">
+        <span slot="label">
+          时区
+          <el-tooltip content='如果时间字段读取有误，通过设置时区转换'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
+        <el-input v-model="form.timeZone" placeholder="请输入时区" maxlength="100" v-trim/>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">

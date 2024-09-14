@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -70,9 +69,9 @@ public class DataSourceService implements ApplicationRunner {
     private DatasourceClient createClient(SysDataSource dataSource) {
         return new DatasourceClient(dataSource, appPropertiesConfig) {
             @Override
-            public void handler(JdbcTemplate jdbcTemplate, TableMapEventData tableEvent, DataChangeEnum type,
+            public void handler(TableMapEventData tableEvent, DataChangeEnum type,
                     List<Serializable[]> rows) {
-                dataAnalyseService.analyse(jdbcTemplate, tableEvent, type, rows);
+                dataAnalyseService.analyse(tableEvent, type, rows);
             }
         };
     }
@@ -104,6 +103,8 @@ public class DataSourceService implements ApplicationRunner {
         saveItem.setId(id);
         sysDataSourceMapper.updateByPrimaryKeySelective(saveItem);
         sysDataSourceCache.invalidate(id);
+        datasourceClientCache.invalidate(id);
+        datasourceClientCache.put(id, createClient(saveItem));
     }
 
     private void checkUnique(Long id, SysDataSourceParam param) {

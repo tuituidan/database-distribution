@@ -85,7 +85,7 @@ public class DatabaseConfigController {
      */
     @PostMapping("/handler")
     public void handler(@RequestBody PushHandlerParam param) {
-        dataAnalyseService.analyse(param.getDatasourceId(), param.getIds(), param.getIncrementValue());
+        dataAnalyseService.analyse(param.getIds(), param.getIncrementValue());
     }
 
 }

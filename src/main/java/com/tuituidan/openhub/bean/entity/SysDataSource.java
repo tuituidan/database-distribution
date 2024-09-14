@@ -43,6 +43,9 @@ public class SysDataSource implements IEntity<SysDataSource, Long> {
 
     private String status;
 
+    @Column(name = "time_zone")
+    private String timeZone;
+
     @JsonFormat(pattern = Consts.TIME_PATTERN)
     @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "last_stop_time")

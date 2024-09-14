@@ -109,13 +109,13 @@ public class DataSourceController {
      *
      * @param id id
      * @param database database
-     * @param tabeName tableName
+     * @param tableName tableName
      * @return List
      */
-    @GetMapping("/{id}/database/{database}/table/{tabeName}")
+    @GetMapping("/{id}/database/{database}/table/{tableName}")
     public List<String> getDatabaseTablesColumn(@PathVariable Long id, @PathVariable String database,
-            @PathVariable String tabeName) {
-        return dataSourceService.getDatabaseTablesColumn(id, database, tabeName);
+            @PathVariable String tableName) {
+        return dataSourceService.getDatabaseTablesColumn(id, database, tableName);
     }
 
 }
