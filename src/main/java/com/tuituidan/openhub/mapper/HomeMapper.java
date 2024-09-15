@@ -1,5 +1,7 @@
 package com.tuituidan.openhub.mapper;
 
+import com.tuituidan.openhub.bean.vo.LineData;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -34,4 +36,35 @@ public interface HomeMapper {
      */
     Long selectPushLogCount(@Param("status") String status, @Param("date") String date);
 
+    /**
+     * todayDataLogLine
+     *
+     * @param curDate curDate
+     * @return List
+     */
+    List<LineData> todayDataLogLine(@Param("curDate") String curDate);
+
+    /**
+     * todayPushLogLine
+     *
+     * @param curDate curDate
+     * @return List
+     */
+    List<LineData> todayPushLogLine(@Param("curDate") String curDate);
+
+    /**
+     * lastMonthDataLogLine
+     *
+     * @param lastMonthDate lastMonthDate
+     * @return List
+     */
+    List<LineData> lastMonthDataLogLine(@Param("lastMonthDate") String lastMonthDate);
+
+    /**
+     * lastMonthPushLogLine
+     *
+     * @param lastMonthDate lastMonthDate
+     * @return List
+     */
+    List<LineData> lastMonthPushLogLine(@Param("lastMonthDate") String lastMonthDate);
 }

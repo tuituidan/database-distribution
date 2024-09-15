@@ -210,7 +210,7 @@ public class DataAnalyseService {
             String sql = StringExtUtils.format(appPropertiesConfig.getSqlPrimaryKeySearch(),
                     config.getDatabaseName(),
                     config.getTableName(),
-                    config.getPrimaryKey(),
+                    config.getPrimaryKey()[0],
                     ids);
             return jdbcTemplate.queryForList(sql);
         }

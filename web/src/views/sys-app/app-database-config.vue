@@ -20,7 +20,6 @@
         :props="{label: 'name'}"
         node-key="id"
         highlight-current
-        :default-checked-keys="checkedIds"
         show-checkbox>
       </el-tree>
     </el-card>
@@ -35,7 +34,6 @@ export default {
       // 遮罩层
       loading: false,
       treeList: [],
-      checkedIds: [],
       appId: '',
     };
   },
@@ -54,13 +52,14 @@ export default {
         });
     },
     loadConfig(row) {
-      if(row){
+      if (row) {
         this.appId = row.id;
       }
       this.loading = true;
+      console.log(this.appId);
       this.$http.get(`/api/v1/sys_app/${this.appId}/database_config`)
         .then(res => {
-          this.checkedIds = res;
+          this.$refs.refTree.setCheckedKeys(res);
         })
         .finally(() => {
           this.loading = false;
