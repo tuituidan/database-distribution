@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `sys_push_log` (
     `response` varchar(4000) NOT NULL COMMENT '推送结果',
     `push_time` datetime NOT NULL COMMENT '推送时间',
     `cost_time` bigint(20) NOT NULL COMMENT '推送耗时',
+    `push_times` int(11) NOT NULL COMMENT '推送次数',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE

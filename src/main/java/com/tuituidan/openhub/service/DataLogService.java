@@ -113,12 +113,21 @@ public class DataLogService {
      * @param id id
      */
     public void pushLog(Long id) {
-        SysPushLog pushLog = sysPushLogMapper.selectByPrimaryKey(id);
+        pushLog(sysPushLogMapper.selectByPrimaryKey(id));
+    }
+
+    /**
+     * pushLog
+     *
+     * @param pushLog pushLog
+     */
+    public void pushLog(SysPushLog pushLog) {
         SysDataLog dataLog = sysDataLogMapper.selectByPrimaryKey(pushLog.getDataLogId());
         long startTime = System.currentTimeMillis();
         pushLog.setPushTime(LocalDateTime.now());
         dataAnalyseService.analyse(dataLog, pushLog);
         pushLog.setCostTime(System.currentTimeMillis() - startTime);
+        pushLog.setPushTimes(pushLog.getPushTimes() + 1);
         sysPushLogMapper.updateByPrimaryKeySelective(pushLog);
     }
 

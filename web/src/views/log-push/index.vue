@@ -66,6 +66,7 @@
       <el-table-column label="推送结果" align="center" prop="response" show-overflow-tooltip/>
       <el-table-column label="推送时间" align="center" prop="pushTime" show-overflow-tooltip/>
       <el-table-column label="推送耗时(毫秒)" align="center" prop="costTime" show-overflow-tooltip/>
+      <el-table-column label="推送次数" align="center" prop="pushTimes" show-overflow-tooltip/>
     </el-table>
 
     <pagination

@@ -48,6 +48,9 @@ public class SysPushLog implements IEntity<SysPushLog, Long> {
     @Column(name = "cost_time")
     private Long costTime;
 
+    @Column(name = "push_times")
+    private Integer pushTimes;
+
     @JsonFormat(pattern = Consts.TIME_PATTERN)
     @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")

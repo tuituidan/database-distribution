@@ -126,6 +126,7 @@ public class DataPushService {
                 .setDataLogId(dataLogId);
         pushToApp(pushLog, sysApp, postData);
         pushLog.setCostTime(System.currentTimeMillis() - startTime);
+        pushLog.setPushTimes(1);
         sysPushLogMapper.insert(pushLog);
     }
 
