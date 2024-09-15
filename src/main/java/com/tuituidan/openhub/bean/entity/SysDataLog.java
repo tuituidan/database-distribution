@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.tresdin.mybatis.bean.IEntity;
-import com.tuituidan.tresdin.mybatis.handler.StringArrayTypeHandler;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -12,7 +11,6 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import tk.mybatis.mapper.annotation.ColumnType;
 
 /**
  * SysApp.
@@ -43,7 +41,6 @@ public class SysDataLog implements IEntity<SysDataLog, Long> {
     private String tableName;
 
     @Column(name = "primary_key")
-    @ColumnType(typeHandler = StringArrayTypeHandler.class)
     private String[] primaryKey;
 
     @Column(name = "oper_type")
