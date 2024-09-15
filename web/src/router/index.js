@@ -73,6 +73,12 @@ export const constantRoutes = [
         name: 'system-app',
         meta: {title: '应用配置', icon: 'dashboard'}
       },
+      {
+        path: '/system/early-warning',
+        component: () => import('@/views/early-warning/index'),
+        name: 'system-early-warning',
+        meta: {title: '预警配置', icon: 'dashboard'}
+      },
     ]
   },
 ]

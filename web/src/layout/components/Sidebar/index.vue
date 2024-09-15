@@ -90,6 +90,11 @@ export default {
               name: 'system-app',
               meta: {title: '应用配置', icon: 'dashboard'}
             },
+            {
+              path: 'early-warning',
+              name: 'system-early-warning',
+              meta: {title: '预警配置', icon: 'dashboard'}
+            },
           ],
         },
       ]

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2024/9/12
  */
 @RestController
-@RequestMapping(TresdinConsts.API_V1 + "health")
+@RequestMapping(TresdinConsts.API_V1 + "/health")
 public class HealthController {
 
     /**

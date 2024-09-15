@@ -41,6 +41,10 @@
             <artifactId>tresdin-dictionary-starter</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.tuituidan.tresdin</groupId>
+            <artifactId>tresdin-schedule-task-starter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -59,6 +63,11 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
+        </dependency>
+        <!-- mail发邮件 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>
