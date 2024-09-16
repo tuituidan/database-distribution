@@ -36,11 +36,6 @@ export default {
           bottom: '3%',
           containLabel: true
         },
-        toolbox: {
-          feature: {
-            saveAsImage: {}
-          }
-        },
         xAxis: {
           type: 'category',
           boundaryGap: false,
@@ -77,7 +72,6 @@ export default {
             this.echartsOptions.series.push({
               name: key,
               type: 'line',
-              stack: 'Total',
               data: values
             });
           }
