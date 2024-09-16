@@ -3,16 +3,16 @@
     <panel-group />
     <el-row>
       <el-col :span="12">
-        <today-data-log-line></today-data-log-line>
+        <line-charts title="本日数据生成情况" url="/api/v1/home/data_log/today/line"></line-charts>
       </el-col>
       <el-col :span="12">
-        <today-push-log-line></today-push-log-line>
+        <line-charts title="本日数据推送情况" url="/api/v1/home/push_log/today/line"></line-charts>
       </el-col>
       <el-col :span="12">
-        <last-month-data-log-line></last-month-data-log-line>
+        <line-charts title="近30天数据生成情况" url="/api/v1/home/data_log/last_month/line"></line-charts>
       </el-col>
       <el-col :span="12">
-        <last-month-push-log-line></last-month-push-log-line>
+        <line-charts title="近30天数据推送情况" url="/api/v1/home/push_log/last_month/line"></line-charts>
       </el-col>
     </el-row>
   </div>
@@ -23,10 +23,7 @@ export default {
   name: 'Index',
   components: {
     PanelGroup: ()=>import('./dashboard/PanelGroup'),
-    'today-data-log-line': ()=>import('./dashboard/TodayDataLogLine'),
-    'today-push-log-line': ()=>import('./dashboard/TodayPushLogLine'),
-    'last-month-data-log-line': ()=>import('./dashboard/LastMonthDataLogLine'),
-    'last-month-push-log-line': ()=>import('./dashboard/LastMonthPushLogLine'),
+    'line-charts': ()=>import('./dashboard/LineCharts'),
   },
 }
 </script>

@@ -8,13 +8,21 @@
 import * as echarts from 'echarts';
 
 export default {
-  name: "LastMonthDataLogLine",
+  name: "LineCharts",
+  props: {
+    title: {
+      type: String
+    },
+    url: {
+      type: String
+    }
+  },
   data() {
     return {
       echartsRef: {},
       echartsOptions: {
         title: {
-          text: '近30天数据生成情况'
+          text: this.title
         },
         tooltip: {
           trigger: 'axis'
@@ -55,7 +63,7 @@ export default {
       this.echartsOptions.legend.data = [];
       this.echartsOptions.xAxis.data = [];
       this.echartsOptions.series = [];
-      this.$http.get('/api/v1/home/data_log/last_month/line')
+      this.$http.get(this.url)
         .then(res => {
           for (const item of res[Object.keys(res)[0]]) {
             this.echartsOptions.xAxis.data.push(item.xdata);

@@ -17,8 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.function.LongFunction;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,52 +68,57 @@ public class HomeController {
 
     @GetMapping("/data_log/today/line")
     public Map<String, List<LineData>> todayDataLogLine() {
+        Map<Long, String> legendMap = sysDataSourceMapper.selectAll().stream()
+                .collect(Collectors.toMap(SysDataSource::getId, SysDataSource::getName));
         List<LineData> lineData = homeMapper.todayDataLogLine(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        return buildLineData(lineData, id -> Optional.ofNullable(sysDataSourceCache.get(id,
-                                key -> sysDataSourceMapper.selectByPrimaryKey(key)))
-                        .map(SysDataSource::getName).orElse(String.valueOf(id)),
+        return buildLineData(lineData, legendMap, String::valueOf,
                 LocalDateTime.now().get(ChronoField.HOUR_OF_DAY));
     }
 
     @GetMapping("/push_log/today/line")
     public Map<String, List<LineData>> todayPushLogLine() {
+        Map<Long, String> legendMap = sysAppMapper.selectAll().stream().collect(Collectors.toMap(SysApp::getId,
+                SysApp::getAppName));
         List<LineData> lineData = homeMapper.todayPushLogLine(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        return buildLineData(lineData, id -> Optional.ofNullable(sysAppCache.get(id,
-                                key -> sysAppMapper.selectByPrimaryKey(key)))
-                        .map(SysApp::getAppName).orElse(String.valueOf(id)),
+        return buildLineData(lineData, legendMap, String::valueOf,
                 LocalDateTime.now().get(ChronoField.HOUR_OF_DAY));
     }
 
     @GetMapping("/data_log/last_month/line")
     public Map<String, List<LineData>> lastMonthDataLogLine() {
-        List<LineData> lineData = homeMapper.lastMonthDataLogLine(LocalDate.now().plusDays(-30)
-                .format(DateTimeFormatter.BASIC_ISO_DATE));
-        return buildLineData(lineData, id -> Optional.ofNullable(sysDataSourceCache.get(id,
-                        key -> sysDataSourceMapper.selectByPrimaryKey(key)))
-                .map(SysDataSource::getName).orElse(String.valueOf(id)), 30);
+        LocalDate firstDay = LocalDate.now().plusDays(-30);
+        Map<Long, String> legendMap = sysDataSourceMapper.selectAll().stream()
+                .collect(Collectors.toMap(SysDataSource::getId, SysDataSource::getName));
+        List<LineData> lineData = homeMapper.lastMonthDataLogLine(firstDay.format(DateTimeFormatter.BASIC_ISO_DATE));
+        return buildLineData(lineData, legendMap,
+                index -> firstDay.plusDays(index).format(DateTimeFormatter.ofPattern("MM-dd")), 30);
     }
 
     @GetMapping("/push_log/last_month/line")
     public Map<String, List<LineData>> lastMonthPushLogLine() {
-        List<LineData> lineData =
-                homeMapper.lastMonthPushLogLine(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        return buildLineData(lineData, id -> Optional.ofNullable(sysAppCache.get(id,
-                        key -> sysAppMapper.selectByPrimaryKey(key)))
-                .map(SysApp::getAppName).orElse(String.valueOf(id)), 30);
+        LocalDate firstDay = LocalDate.now().plusDays(-30);
+        Map<Long, String> legendMap = sysAppMapper.selectAll().stream().collect(Collectors.toMap(SysApp::getId,
+                SysApp::getAppName));
+        List<LineData> lineData = homeMapper.lastMonthPushLogLine(firstDay.format(DateTimeFormatter.BASIC_ISO_DATE));
+        return buildLineData(lineData, legendMap,
+                index -> firstDay.plusDays(index).format(DateTimeFormatter.ofPattern("MM-dd")), 30);
     }
 
     private Map<String, List<LineData>> buildLineData(List<LineData> lineData,
-            LongFunction<String> transNameFunc, Integer length) {
+            Map<Long, String> legendMap, IntFunction<String> xdataFunc, int length) {
         Map<Long, List<LineData>> dataMap = lineData.stream().collect(Collectors.groupingBy(LineData::getId));
         Map<String, List<LineData>> result = new HashMap<>(dataMap.size());
-        for (Entry<Long, List<LineData>> entry : dataMap.entrySet()) {
-            Map<Integer, Integer> valueMap = entry.getValue().stream().collect(Collectors.toMap(LineData::getXdata,
-                    LineData::getYdata));
-            List<LineData> valueList = new ArrayList<>();
+        for (Entry<Long, String> legendEntry : legendMap.entrySet()) {
+            Map<String, Integer> sourceMap = dataMap.getOrDefault(legendEntry.getKey(), new ArrayList<>())
+                    .stream().collect(Collectors.toMap(LineData::getXdata, LineData::getYdata));
+            List<LineData> distValues = new ArrayList<>();
             for (int i = 0; i <= length; i++) {
-                valueList.add(new LineData().setXdata(i).setYdata(valueMap.getOrDefault(i, 0)));
+                String xdata = xdataFunc.apply(i);
+                distValues.add(new LineData()
+                        .setXdata(xdata)
+                        .setYdata(sourceMap.getOrDefault(xdata, 0)));
             }
-            result.put(transNameFunc.apply(entry.getKey()), valueList);
+            result.put(legendEntry.getValue(), distValues);
         }
         return result;
     }

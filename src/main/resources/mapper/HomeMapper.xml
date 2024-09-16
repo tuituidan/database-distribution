@@ -41,16 +41,16 @@
     </select>
 
     <select id="lastMonthDataLogLine" resultType="com.tuituidan.openhub.bean.vo.LineData">
-        select datasource_id as id, day(create_time) as xdata, count(*) as ydata
+        select datasource_id as id, DATE_FORMAT(create_time, '%m-%d') as xdata, count(*) as ydata
         from sys_data_log
         where DATE_FORMAT(create_time, '%Y%m%d') >= #{lastMonthDate}
-        group by datasource_id, day(create_time)
+        group by datasource_id, DATE_FORMAT(create_time, '%m-%d')
     </select>
 
     <select id="lastMonthPushLogLine" resultType="com.tuituidan.openhub.bean.vo.LineData">
-        select app_id as id, day(push_time) as xdata, count(*) as ydata
+        select app_id as id, DATE_FORMAT(push_time, '%m-%d') as xdata, count(*) as ydata
         from sys_push_log
         where DATE_FORMAT(push_time, '%Y%m%d') >= #{lastMonthDate}
-        group by app_id, day(push_time)
+        group by app_id, DATE_FORMAT(push_time, '%m-%d')
     </select>
 </mapper>

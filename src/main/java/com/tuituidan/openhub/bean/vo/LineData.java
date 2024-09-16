@@ -20,7 +20,7 @@ public class LineData {
 
     private String name;
 
-    private Integer xdata;
+    private String xdata;
 
     private Integer ydata;
 
