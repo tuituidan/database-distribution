@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" th:href="@{/assets/css/login.css}">
+</head>
+<body>
+<header class="header">
+</header>
+<div class="login-wrapper">
+    <div class="login-content">
+        <div class="login-header">
+            <h1 class="login-header-h2">欢迎登录</h1>
+        </div>
+        <div class="login-form-wrapper">
+            <form onclick="this.disabled=false" onsubmit="return handleSubmit()"
+                  method="POST"
+                  action="/login">
+                <div class="username-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="username username-input-default"
+                           type="text"
+                           name="username"
+                           id="username"
+                           value="admin"
+                           placeholder="请输入用户名">
+                </div>
+
+                <div class="password-wrapper">
+                    <input onfocus="inputFocus()"
+                           class="password password-input-default"
+                           type="password"
+                           name="password"
+                           id="password"
+                           value="123456"
+                           placeholder="请输入密码">
+                </div>
+                <div class="submit-btn-wrapper">
+                    <img class="btn-loading" src="./assets/images/loading.svg" alt="">
+                    <button type="submit" onclick="handleSubmit()" class="submit-btn">登录</button>
+                </div>
+                <div class="login-error-wrapper" th:if="${param.error}">
+                    <p class="login-error opacity1" th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}"></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+<script type="application/javascript" th:src="@{/assets/js/login.js}">
+</script>
+</html>
+
+

@@ -1,10 +1,18 @@
 package com.tuituidan.openhub.config;
 
+import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * AppConfig.
@@ -14,7 +22,22 @@ import org.springframework.web.filter.CorsFilter;
  * @date 2021/3/5
  */
 @Configuration
-public class AppConfig {
+@Slf4j
+public class AppConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        try {
+            Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(
+                    new PathMatchingResourcePatternResolver()).getResources("templates/*.html");
+            for (Resource resource : resources) {
+                String fileName = FilenameUtils.getBaseName(resource.getFilename());
+                registry.addViewController("/" + fileName).setViewName(fileName);
+            }
+        } catch (IOException ex) {
+            log.error("默认路由生成失败", ex);
+        }
+    }
 
     /**
      * 跨域配置
