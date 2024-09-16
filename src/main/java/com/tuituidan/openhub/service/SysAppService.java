@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -23,7 +25,7 @@ import org.springframework.util.Assert;
  * @date 2024/8/31
  */
 @Service
-public class SysAppService {
+public class SysAppService implements ApplicationRunner {
 
     @Resource
     private SysAppMapper sysAppMapper;
@@ -36,6 +38,14 @@ public class SysAppService {
 
     @Resource
     private Cache<Long, List<SysApp>> databaseAppConfigCache;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        List<SysApp> sysApps = sysAppMapper.selectAll();
+        for (SysApp sysApp : sysApps) {
+            sysAppCache.put(sysApp.getId(), sysApp);
+        }
+    }
 
     /**
      * selectAll
@@ -57,11 +67,12 @@ public class SysAppService {
         SysApp saveItem = BeanExtUtils.convert(param, SysApp::new);
         if (id == null) {
             sysAppMapper.insertSelective(saveItem);
+            sysAppCache.put(saveItem.getId(), saveItem);
             return;
         }
         saveItem.setId(id);
         sysAppMapper.updateByPrimaryKeySelective(saveItem);
-        sysAppCache.invalidate(id);
+        sysAppCache.put(id, saveItem);
         Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
                 .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
         databaseAppConfigCache.invalidateAll(configIds);

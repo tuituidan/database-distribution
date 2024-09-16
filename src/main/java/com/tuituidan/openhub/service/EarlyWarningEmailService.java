@@ -33,7 +33,7 @@ public class EarlyWarningEmailService implements ApplicationRunner {
     private SysEarlyWarningEmail emailConfig;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         List<SysEarlyWarningEmail> list = sysEarlyWarningEmailMapper.selectAll();
         if (CollectionUtils.isEmpty(list)) {
             return;

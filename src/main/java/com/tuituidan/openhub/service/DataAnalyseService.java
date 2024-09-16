@@ -118,18 +118,6 @@ public class DataAnalyseService {
         });
     }
 
-    private List<SysApp> getAppList(Long configId) {
-        return databaseAppConfigCache.get(configId, key -> {
-            Set<Long> appIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig()
-                            .setDatabaseConfigId(configId)).stream().map(SysAppDatabaseConfig::getAppId)
-                    .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(appIds)) {
-                return null;
-            }
-            return sysAppMapper.selectByIds(StringUtils.join(appIds, ","));
-        });
-    }
-
     /**
      * analyse
      *
@@ -189,6 +177,18 @@ public class DataAnalyseService {
                 new BeanPropertyRowMapper<>(TableStruct.class)));
         configView.getTableStruct().sort(Comparator.comparingInt(TableStruct::getOrdinalPosition));
         return configView;
+    }
+
+    private List<SysApp> getAppList(Long configId) {
+        return databaseAppConfigCache.get(configId, key -> {
+            Set<Long> appIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig()
+                            .setDatabaseConfigId(configId)).stream().map(SysAppDatabaseConfig::getAppId)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(appIds)) {
+                return null;
+            }
+            return sysAppMapper.selectByIds(StringUtils.join(appIds, ","));
+        });
     }
 
     private List<Map<String, Object>> buildDataList(JdbcTemplate jdbcTemplate,

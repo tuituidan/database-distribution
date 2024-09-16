@@ -63,6 +63,7 @@ public class DataSourceService implements ApplicationRunner {
         List<SysDataSource> dataSourceList = selectAll();
         for (SysDataSource dataSource : dataSourceList) {
             datasourceClientCache.put(dataSource.getId(), createClient(dataSource));
+            sysDataSourceCache.put(dataSource.getId(), dataSource);
         }
     }
 
@@ -97,12 +98,13 @@ public class DataSourceService implements ApplicationRunner {
         if (id == null) {
             saveItem.setStatus(StatusEnum.STOP.getCode());
             sysDataSourceMapper.insertSelective(saveItem);
+            sysDataSourceCache.put(saveItem.getId(), saveItem);
             datasourceClientCache.put(saveItem.getId(), createClient(saveItem));
             return;
         }
         saveItem.setId(id);
         sysDataSourceMapper.updateByPrimaryKeySelective(saveItem);
-        sysDataSourceCache.invalidate(id);
+        sysDataSourceCache.put(id, saveItem);
         datasourceClientCache.invalidate(id);
         datasourceClientCache.put(id, createClient(saveItem));
     }
