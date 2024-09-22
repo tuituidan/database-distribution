@@ -15,15 +15,7 @@
     <select id="selectPushLogCount" resultType="long">
         select count(*)
         from sys_push_log
-        where DATE_FORMAT(push_time, '%Y%m%d') = #{date}
-        <choose>
-            <when test="status == '200'">
-                and status = '200'
-            </when>
-            <otherwise>
-                and status != '200'
-            </otherwise>
-        </choose>
+        where DATE_FORMAT(push_time, '%Y%m%d') = #{date} and status = #{status}
     </select>
 
     <select id="todayDataLogLine" resultType="com.tuituidan.openhub.bean.vo.LineData">

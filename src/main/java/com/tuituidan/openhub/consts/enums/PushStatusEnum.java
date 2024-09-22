@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * HttpStatusEnum.
+ * PushStatusEnum.
  *
  * @author tuituidan
  * @version 1.0
@@ -12,12 +12,12 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum HttpStatusEnum {
+public enum PushStatusEnum {
     /**
      * 成功
      */
-    OK("200", "成功"),
-    FAIL("500", "失败");
+    SUCCESS("01", "成功"),
+    FAIL("02", "失败");
 
     private String code;
 

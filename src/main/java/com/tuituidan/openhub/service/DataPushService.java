@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.service;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
@@ -9,9 +10,11 @@ import com.tuituidan.openhub.bean.entity.SysPushLog;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
+import com.tuituidan.openhub.consts.enums.PushStatusEnum;
 import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.tresdin.mybatis.util.SnowFlake;
+import com.tuituidan.tresdin.util.ExpParserUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -34,7 +36,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -137,15 +138,26 @@ public class DataPushService {
                     .header("Authorization", getToken(sysApp))
                     .acceptCharset(StandardCharsets.UTF_8)
                     .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
-            pushLog.setResponse(StringUtils.defaultString(response.getBody(), "无数据返回"));
-            pushLog.setStatus(Objects.toString(response.getStatusCodeValue()));
-        } catch (HttpServerErrorException ex) {
-            pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));
-            pushLog.setStatus(Objects.toString(ex.getStatusCode().value()));
+            pushLog.setResponse(StringUtils.truncate(StringUtils.defaultString(response.getBody(),
+                    "无数据返回"), 4000));
+            pushLog.setStatus(analysePushStatus(response, sysApp));
         } catch (Exception ex) {
-            pushLog.setResponse("未知异常：" + StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 3990));
-            pushLog.setStatus(Objects.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));
+            pushLog.setStatus(PushStatusEnum.FAIL.getCode());
         }
+    }
+
+    private String analysePushStatus(ResponseEntity<String> response, SysApp sysApp) {
+        if (StringUtils.isBlank(sysApp.getResultExp())) {
+            return response.getStatusCodeValue() == HttpStatus.OK.value()
+                    ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
+
+        }
+        if (StringUtils.isBlank(response.getBody())) {
+            return PushStatusEnum.FAIL.getCode();
+        }
+        return ExpParserUtils.evaluate(sysApp.getResultExp(), JSON.parseObject(response.getBody()))
+                ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
     }
 
     private String getToken(SysApp sysApp) {

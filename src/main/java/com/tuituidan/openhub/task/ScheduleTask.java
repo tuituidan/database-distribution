@@ -2,7 +2,7 @@ package com.tuituidan.openhub.task;
 
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
-import com.tuituidan.openhub.consts.enums.HttpStatusEnum;
+import com.tuituidan.openhub.consts.enums.PushStatusEnum;
 import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.openhub.service.DataLogService;
@@ -51,7 +51,7 @@ public class ScheduleTask {
     public void rePushData() {
         Weekend<SysPushLog> pushLogWeekend = Weekend.of(SysPushLog.class);
         pushLogWeekend.weekendCriteria()
-                .andNotEqualTo(SysPushLog::getStatus, HttpStatusEnum.OK.getCode())
+                .andEqualTo(SysPushLog::getStatus, PushStatusEnum.FAIL.getCode())
                 .andLessThan(SysPushLog::getPushTimes, 5);
         int count = sysPushLogMapper.selectCountByExample(pushLogWeekend);
         if (count <= 0) {
@@ -77,7 +77,7 @@ public class ScheduleTask {
     public void sendEmail() {
         Weekend<SysPushLog> pushLogWeekend = Weekend.of(SysPushLog.class);
         pushLogWeekend.weekendCriteria()
-                .andNotEqualTo(SysPushLog::getStatus, HttpStatusEnum.OK.getCode())
+                .andEqualTo(SysPushLog::getStatus, PushStatusEnum.FAIL.getCode())
                 .andGreaterThanOrEqualTo(SysPushLog::getPushTimes, 5);
         int count = sysPushLogMapper.selectCountByExample(pushLogWeekend);
         if (count > 0) {

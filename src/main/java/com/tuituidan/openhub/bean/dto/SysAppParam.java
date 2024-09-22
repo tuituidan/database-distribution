@@ -22,4 +22,6 @@ public class SysAppParam {
 
     private String url;
 
+    private String resultExp;
+
 }

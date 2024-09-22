@@ -1,8 +1,8 @@
 <template>
   <el-dialog :title="title" :visible.sync="show"
              :close-on-click-modal="false"
-             width="600px" append-to-body>
-    <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
+             width="660px" append-to-body>
+    <el-form ref="form" :model="form" :rules="rules" label-width="140px" @submit.native.prevent>
       <el-form-item label="应用名称" prop="appName">
         <el-input v-model="form.appName" placeholder="请输入应用名称" maxlength="100" v-trim/>
       </el-form-item>
@@ -24,6 +24,15 @@
           </el-tooltip>
         </span>
         <el-input v-model="form.url" placeholder="请输入推送地址" maxlength="400" v-trim/>
+      </el-form-item>
+      <el-form-item prop="resultExp">
+        <span slot="label">
+          结果解析表达式
+          <el-tooltip content='将返回的json数据通过此SpringEL表达式来解析，用于判断成功还是失败，如返回成功结果是{code:1,msg:"xxx"}，填写【#code==1】，当code为其他值时结果判定为失败，方便后续重推失败数据，如果不填写则以http请求状态来判断成功失败'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
+        <el-input v-model="form.resultExp" placeholder="请输入结果解析表达式" maxlength="400" v-trim/>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
@@ -49,6 +58,7 @@ export default {
         appName: '',
         appSecret: '',
         url: '',
+        resultExp: '',
       },
       rules: {
         appKey: [
@@ -88,6 +98,7 @@ export default {
         appName: '',
         appSecret: '',
         url: '',
+        resultExp: '',
       };
       this.$nextTick(() => {
         this.$refs.form.clearValidate();

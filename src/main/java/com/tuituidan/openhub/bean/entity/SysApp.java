@@ -39,6 +39,9 @@ public class SysApp implements IEntity<SysApp, Long> {
 
     private String url;
 
+    @Column(name = "result_exp")
+    private String resultExp;
+
     @JsonFormat(pattern = Consts.TIME_PATTERN)
     @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")

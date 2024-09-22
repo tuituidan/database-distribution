@@ -3,7 +3,7 @@ package com.tuituidan.openhub.service;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
 import com.tuituidan.openhub.bean.vo.SysDataLogView;
-import com.tuituidan.openhub.consts.enums.HttpStatusEnum;
+import com.tuituidan.openhub.consts.enums.PushStatusEnum;
 import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.tresdin.mybatis.QueryHelper;
@@ -84,7 +84,7 @@ public class DataLogService {
      * @return List
      */
     public List<Long> getFailPushLogIds() {
-        Weekend<SysPushLog> search = buildWeekend(new SysPushLog().setStatus(HttpStatusEnum.FAIL.getCode()));
+        Weekend<SysPushLog> search = buildWeekend(new SysPushLog().setStatus(PushStatusEnum.FAIL.getCode()));
         return sysPushLogMapper.selectByExample(search).stream().map(SysPushLog::getId).collect(Collectors.toList());
     }
 
@@ -98,11 +98,7 @@ public class DataLogService {
             criteria.andEqualTo(SysPushLog::getDataLogId, search.getDataLogId());
         }
         if (StringUtils.isNotBlank(search.getStatus())) {
-            if (HttpStatusEnum.OK.getCode().equals(search.getStatus())) {
-                criteria.andEqualTo(SysPushLog::getStatus, HttpStatusEnum.OK.getCode());
-            } else {
-                criteria.andNotEqualTo(SysPushLog::getStatus, HttpStatusEnum.OK.getCode());
-            }
+            criteria.andEqualTo(SysPushLog::getStatus, search.getStatus());
         }
         return weekend;
     }

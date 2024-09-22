@@ -38,7 +38,7 @@
               <el-table-column label="应用名称" align="center" prop="appName" show-overflow-tooltip/>
               <el-table-column label="推送状态" align="center" prop="status" show-overflow-tooltip>
                 <template slot-scope="scope">
-                  <el-tag v-if="scope.row.status === '200'" type="success" effect="plain">成功</el-tag>
+                  <el-tag v-if="scope.row.status === '01'" type="success" effect="plain">成功</el-tag>
                   <el-tag v-else type="danger" effect="plain">失败</el-tag>
                 </template>
               </el-table-column>

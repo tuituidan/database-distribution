@@ -79,11 +79,11 @@ export default {
         .then(res => {
           this.pushLogCount = res;
         });
-      this.$http.get('/api/v1/home/push_log/200/count')
+      this.$http.get('/api/v1/home/push_log/01/count')
         .then(res => {
           this.pushSuccessLogCount = res;
         });
-      this.$http.get('/api/v1/home/push_log/500/count')
+      this.$http.get('/api/v1/home/push_log/02/count')
         .then(res => {
           this.pushFailLogCount = res;
         })

@@ -68,6 +68,7 @@ export default {
         username: '',
         password: '',
         serverId: '',
+        timeZone: '',
       },
       rules: {
         name: [
@@ -110,6 +111,7 @@ export default {
         username: '',
         password: '',
         serverId: '',
+        timeZone: '',
       };
       this.$nextTick(() => {
         this.$refs.form.clearValidate();
