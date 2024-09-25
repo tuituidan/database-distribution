@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -69,7 +68,7 @@ public class DataPushService {
      * @param dataList dataList
      */
     public void push(SysDatabaseConfigView configView, DataChangeEnum type,
-            List<Map<String, Object>> dataList, List<SysApp> appList) {
+            List<JSONObject> dataList, List<SysApp> appList) {
         PostTableData postData = buildPostTableData(configView, type, dataList);
         Long dataLogId = createSysDataLog(configView, type, dataList);
         List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -88,13 +87,13 @@ public class DataPushService {
      * @param sysApp sysApp
      */
     public void push(SysDatabaseConfigView configView, SysPushLog pushLog,
-            List<Map<String, Object>> dataList, SysApp sysApp) {
+            List<JSONObject> dataList, SysApp sysApp) {
         PostTableData postData = buildPostTableData(configView, DataChangeEnum.REPLACE, dataList);
         pushToApp(pushLog, sysApp, postData);
     }
 
     private Long createSysDataLog(SysDatabaseConfigView configView, DataChangeEnum type,
-            List<Map<String, Object>> dataList) {
+            List<JSONObject> dataList) {
         SysDataLog dataLog = new SysDataLog()
                 .setId(SnowFlake.newId())
                 .setDatasourceId(configView.getDatasourceId())
@@ -109,7 +108,7 @@ public class DataPushService {
     }
 
     private PostTableData buildPostTableData(SysDatabaseConfigView configView, DataChangeEnum type,
-            List<Map<String, Object>> dataList) {
+            List<JSONObject> dataList) {
         return new PostTableData().setDataList(dataList)
                 .setTable(configView.getTableName())
                 .setDatabase(configView.getDatabaseName())

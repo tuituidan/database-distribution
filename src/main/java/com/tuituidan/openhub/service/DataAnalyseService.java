@@ -33,7 +33,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -135,8 +134,8 @@ public class DataAnalyseService {
             }
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                     k -> getDatabaseConfigView(config)));
-            List<Map<String, Object>> dataList = buildDataList(configView.getJdbcTemplate(), config, incrementValue);
-            for (Map<String, Object> item : dataList) {
+            List<JSONObject> dataList = buildDataList(configView.getJdbcTemplate(), config, incrementValue);
+            for (JSONObject item : dataList) {
                 // 拆成单条，避免数据过大
                 dataPushService.push(configView, DataChangeEnum.REPLACE, Collections.singletonList(item), appList);
             }
@@ -158,8 +157,8 @@ public class DataAnalyseService {
         }
         SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                 k -> getDatabaseConfigView(config)));
-        List<Map<String, Object>> dataList = buildDataList(configView.getJdbcTemplate(), config, dataLog);
-        for (Map<String, Object> item : dataList) {
+        List<JSONObject> dataList = buildDataList(configView.getJdbcTemplate(), config, dataLog);
+        for (JSONObject item : dataList) {
             // 拆成单条，避免数据过大
             dataPushService.push(configView, pushLog, Collections.singletonList(item), sysApp);
         }
@@ -191,17 +190,17 @@ public class DataAnalyseService {
         });
     }
 
-    private List<Map<String, Object>> buildDataList(JdbcTemplate jdbcTemplate,
+    private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,
             SysDatabaseConfig config, String incrementValue) {
         String sql = StringExtUtils.format(appPropertiesConfig.getSqlIncrementSearch(),
                 config.getDatabaseName(),
                 config.getTableName(),
                 config.getIncrementKey(),
                 incrementValue);
-        return jdbcTemplate.queryForList(sql);
+        return mapToJsonList(jdbcTemplate.queryForList(sql));
     }
 
-    private List<Map<String, Object>> buildDataList(JdbcTemplate jdbcTemplate,
+    private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,
             SysDatabaseConfig config, SysDataLog dataLog) {
         if (config.getPrimaryKey().length == 1) {
             String ids = JSON.parseArray(dataLog.getDataLog(), JSONObject.class).stream()
@@ -212,7 +211,7 @@ public class DataAnalyseService {
                     config.getTableName(),
                     config.getPrimaryKey()[0],
                     ids);
-            return jdbcTemplate.queryForList(sql);
+            return mapToJsonList(jdbcTemplate.queryForList(sql));
         }
         List<JSONObject> dataList = JSON.parseArray(dataLog.getDataLog(), JSONObject.class);
         List<Map<String, Object>> result = new ArrayList<>();
@@ -225,13 +224,13 @@ public class DataAnalyseService {
                     where);
             result.addAll(jdbcTemplate.queryForList(sql));
         }
-        return result;
+        return mapToJsonList(result);
     }
 
-    private List<Map<String, Object>> buildDataList(SysDatabaseConfigView configView, List<Serializable[]> rows) {
-        List<Map<String, Object>> list = new ArrayList<>();
+    private List<JSONObject> buildDataList(SysDatabaseConfigView configView, List<Serializable[]> rows) {
+        List<JSONObject> list = new ArrayList<>();
         for (Serializable[] row : rows) {
-            Map<String, Object> item = new HashMap<>(row.length);
+            JSONObject item = new JSONObject();
             for (TableStruct struct : configView.getTableStruct()) {
                 item.put(struct.getColumnName(), formatData(configView.getTimeZone(),
                         row[struct.getOrdinalPosition() - 1]));
@@ -250,6 +249,10 @@ public class DataAnalyseService {
             Long number = NumberUtils.createLong(incrementValue);
             Assert.notNull(number, "数字转换失败");
         }
+    }
+
+    private List<JSONObject> mapToJsonList(List<Map<String, Object>> source) {
+        return JSON.parseArray(JSON.toJSONString(source), JSONObject.class);
     }
 
     private Object formatData(String timeZone, Object data) {

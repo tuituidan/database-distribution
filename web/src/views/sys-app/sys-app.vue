@@ -33,6 +33,7 @@
       <el-table-column label="应用名称" align="center" prop="appName" :show-overflow-tooltip="true"/>
       <el-table-column label="应用秘钥" align="center" prop="appSecret" :show-overflow-tooltip="true"/>
       <el-table-column label="推送地址" align="center" prop="url" :show-overflow-tooltip="true"/>
+      <el-table-column label="结果解析" align="center" prop="resultExp" :show-overflow-tooltip="true"/>
       <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
