@@ -45,4 +45,13 @@
         where DATE_FORMAT(push_time, '%Y%m%d') >= #{lastMonthDate}
         group by app_id, DATE_FORMAT(push_time, '%m-%d')
     </select>
+
+    <select id="selectTableDataCount" resultType="com.tuituidan.openhub.bean.vo.LineData">
+        select concat(database_name, table_name) as xdata,count(*) as ydata from sys_data_log
+        GROUP BY database_name,table_name;
+    </select>
+    <select id="selectAppCostTime" resultType="com.tuituidan.openhub.bean.vo.LineData">
+        select app_id as id,sum(cost_time)/count(*) as ydata
+        from sys_push_log GROUP BY app_id
+    </select>
 </mapper>

@@ -96,4 +96,24 @@ public class HomeController {
         return homeService.lastMonthPushLogLine();
     }
 
+    /**
+     * selectTableDataCount
+     *
+     * @return List
+     */
+    @GetMapping("/data_log/table/count")
+    public List<LineData> selectTableDataCount() {
+        return homeService.selectTableDataCount();
+    }
+
+    /**
+     * selectAppCostTime
+     *
+     * @return List
+     */
+    @GetMapping("/push_log/app/cost_time")
+    public List<LineData> selectAppCostTime() {
+        return homeService.selectAppCostTime();
+    }
+
 }

@@ -90,7 +90,7 @@ public class DataAnalyseService {
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
 
     /**
-     * analyse
+     * 数据库监听数据解析
      *
      * @param tableEvent tableEvent
      * @param type type
@@ -118,7 +118,7 @@ public class DataAnalyseService {
     }
 
     /**
-     * analyse
+     * 手动增量推送
      *
      * @param configIds configIds
      * @param incrementValue incrementValue
@@ -143,7 +143,7 @@ public class DataAnalyseService {
     }
 
     /**
-     * analyse
+     * 手动推送失败数据
      *
      * @param dataLog dataLog
      * @param pushLog pushLog
@@ -192,6 +192,7 @@ public class DataAnalyseService {
 
     private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,
             SysDatabaseConfig config, String incrementValue) {
+        Assert.hasText(config.getIncrementKey(), "未配置增量字段，无法增量同步");
         String sql = StringExtUtils.format(appPropertiesConfig.getSqlIncrementSearch(),
                 config.getDatabaseName(),
                 config.getTableName(),
@@ -202,6 +203,7 @@ public class DataAnalyseService {
 
     private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,
             SysDatabaseConfig config, SysDataLog dataLog) {
+        Assert.notEmpty(config.getPrimaryKey(), "未配置主键，无法查询最新数据进行同步");
         if (config.getPrimaryKey().length == 1) {
             String ids = JSON.parseArray(dataLog.getDataLog(), JSONObject.class).stream()
                     .map(item -> item.getString(config.getPrimaryKey()[0]))

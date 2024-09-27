@@ -3,6 +3,7 @@ package com.tuituidan.openhub.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
+import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.LineData;
 import com.tuituidan.openhub.mapper.HomeMapper;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -37,6 +39,9 @@ public class HomeService {
 
     @Resource
     private Cache<Long, SysDataSource> sysDataSourceCache;
+
+    @Resource
+    private Cache<String, SysDatabaseConfig> databaseConfigCache;
 
     /**
      * selectAllDataLogCount
@@ -118,6 +123,41 @@ public class HomeService {
         List<LineData> lineData = homeMapper.lastMonthPushLogLine(firstDay.format(DateTimeFormatter.BASIC_ISO_DATE));
         return buildLineData(lineData, legendMap,
                 index -> firstDay.plusDays(index).format(DateTimeFormatter.ofPattern("MM-dd")), 30);
+    }
+
+    /**
+     * selectTableDataCount
+     *
+     * @return List
+     */
+    public List<LineData> selectTableDataCount() {
+        List<LineData> lineData = homeMapper.selectTableDataCount();
+        Map<String, Integer> dataMap = lineData.stream().collect(Collectors.toMap(LineData::getXdata,
+                LineData::getYdata));
+        List<LineData> resultList = new ArrayList<>();
+        for (Entry<String, SysDatabaseConfig> entry : databaseConfigCache.asMap().entrySet()) {
+            resultList.add(new LineData().setXdata(entry.getValue().getTableComment())
+                    .setYdata(dataMap.get(entry.getKey())));
+        }
+        return resultList;
+    }
+
+    /**
+     * selectAppCostTime
+     *
+     * @return List
+     */
+    public List<LineData> selectAppCostTime() {
+        List<LineData> lineData = homeMapper.selectAppCostTime();
+        Map<Long, Integer> dataMap = lineData.stream().collect(Collectors.toMap(LineData::getId,
+                LineData::getYdata));
+        List<LineData> resultList = new ArrayList<>();
+        Set<Entry<Long, SysApp>> entries = sysAppCache.asMap().entrySet();
+        for (Entry<Long, SysApp> entry : entries) {
+            resultList.add(new LineData().setXdata(entry.getValue().getAppName())
+                    .setYdata(dataMap.get(entry.getKey())));
+        }
+        return resultList;
     }
 
     private Map<String, List<LineData>> buildLineData(List<LineData> lineData,

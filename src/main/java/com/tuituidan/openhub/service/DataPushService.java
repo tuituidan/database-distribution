@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -148,7 +147,7 @@ public class DataPushService {
 
     private String analysePushStatus(ResponseEntity<String> response, SysApp sysApp) {
         if (StringUtils.isBlank(sysApp.getResultExp())) {
-            return response.getStatusCodeValue() == HttpStatus.OK.value()
+            return response.getStatusCode().is2xxSuccessful()
                     ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
 
         }

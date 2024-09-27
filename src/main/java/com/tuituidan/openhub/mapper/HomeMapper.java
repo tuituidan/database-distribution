@@ -67,4 +67,19 @@ public interface HomeMapper {
      * @return List
      */
     List<LineData> lastMonthPushLogLine(@Param("lastMonthDate") String lastMonthDate);
+
+    /**
+     * selectTableDataCount
+     *
+     * @return List
+     */
+    List<LineData> selectTableDataCount();
+
+    /**
+     * selectAppCostTime
+     *
+     * @return List
+     */
+    List<LineData> selectAppCostTime();
+
 }
