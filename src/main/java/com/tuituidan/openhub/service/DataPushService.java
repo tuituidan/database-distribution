@@ -72,7 +72,11 @@ public class DataPushService {
         Long dataLogId = createSysDataLog(configView, type, dataList);
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (SysApp sysApp : appList) {
-            futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData)));
+            futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData))
+                    .exceptionally(ex -> {
+                        log.error("数据日志推送异常", ex);
+                        return null;
+                    }));
         }
         CompletableUtils.waitAll(futures);
     }
