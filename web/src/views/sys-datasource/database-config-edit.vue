@@ -130,6 +130,9 @@ export default {
         tableName: [
           {required: true, message: "表名不能为空", trigger: "blur"}
         ],
+        primaryKey: [
+          {required: true, message: "主键名不能为空", trigger: "blur"}
+        ],
       },
       databaseOptions: [],
       tableOptions: [],

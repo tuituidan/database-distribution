@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `sys_database_config` (
     `database_name` varchar(100) NOT NULL COMMENT '数据库名',
     `table_name` varchar(100) NOT NULL COMMENT '表名',
     `table_comment` varchar(100) DEFAULT NULL COMMENT '表说明',
-    `primary_key` varchar(100) DEFAULT NULL COMMENT '主键名',
+    `primary_key` varchar(100) NOT NULL COMMENT '主键名',
     `increment_key` varchar(100) DEFAULT NULL COMMENT '增量字段',
     `increment_type` varchar(100) DEFAULT NULL COMMENT '增量类型',
     `record_column` varchar(800) DEFAULT NULL COMMENT '日志记录字段',
