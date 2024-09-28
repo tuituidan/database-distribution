@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -105,9 +106,24 @@ public class DataPushService {
                 .setTableName(configView.getTableName())
                 .setPrimaryKey(configView.getPrimaryKey())
                 .setOperType(type.getCode())
-                .setDataLog(JSONObject.toJSONString(dataList));
+                .setDataLog(extractRecordLogList(configView.getRecordColumn(), dataList));
         sysDataLogMapper.insert(dataLog);
         return dataLog.getId();
+    }
+
+    private String extractRecordLogList(String[] recordColumn, List<JSONObject> dataList) {
+        if (ArrayUtils.isEmpty(recordColumn)) {
+            return JSONObject.toJSONString(dataList);
+        }
+        List<JSONObject> resultList = new ArrayList<>();
+        for (JSONObject source : dataList) {
+            JSONObject target = new JSONObject();
+            for (String column : recordColumn) {
+                target.put(column, source.get(column));
+            }
+            resultList.add(target);
+        }
+        return JSONObject.toJSONString(resultList);
     }
 
     private PostTableData buildPostTableData(SysDatabaseConfigView configView, DataChangeEnum type,

@@ -51,6 +51,9 @@ public class SysDatabaseConfig implements IEntity<SysDatabaseConfig, Long> {
     @DictType("2000000001")
     private String incrementType;
 
+    @Column(name = "record_column")
+    private String[] recordColumn;
+
     @JsonFormat(pattern = Consts.TIME_PATTERN)
     @JSONField(format = Consts.TIME_PATTERN)
     @Column(name = "create_time")

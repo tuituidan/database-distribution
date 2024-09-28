@@ -46,6 +46,11 @@
       </el-table-column>
       <el-table-column label="增量字段" align="center" prop="incrementKey" :show-overflow-tooltip="true"/>
       <el-table-column label="增量字段类型" align="center" prop="incrementTypeText" :show-overflow-tooltip="true"/>
+      <el-table-column label="记录关键字段" align="center" prop="recordColumn" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <span v-text="Array.isArray(scope.row.recordColumn) && scope.row.recordColumn.join(';')"></span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" width="110" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button

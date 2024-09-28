@@ -1,8 +1,8 @@
 <template>
   <el-dialog :title="title" :visible.sync="show"
              :close-on-click-modal="false"
-             width="480px" append-to-body>
-    <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
+             width="600px" append-to-body>
+    <el-form ref="form" :model="form" :rules="rules" label-width="120px" @submit.native.prevent>
       <el-form-item label="数据库" prop="databaseName">
         <el-select v-model="form.databaseName" placeholder="请选择数据库"
                    @change="loadTableOptions"
@@ -67,6 +67,25 @@
           </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="日志记录字段" prop="recordColumn">
+        <span slot="label">
+          日志记录字段
+          <el-tooltip content='记录在数据日志中的字段，不配置记录所有字段，建议配置少量关键字段更易于查看日志，也减少存储'>
+          <i class="el-icon-question"></i>
+          </el-tooltip>
+        </span>
+        <el-select v-model="form.recordColumn" placeholder="请选择要记录到日志的字段"
+                   clearable
+                   multiple
+                   filterable>
+          <el-option
+            v-for="item in columnOptions"
+            :key="item"
+            :label="item"
+            :value="item">
+          </el-option>
+        </el-select>
+      </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -100,6 +119,7 @@ export default {
         tableName: '',
         tableComment: '',
         primaryKey: [],
+        recordColumn: [],
         incrementKey: '',
         incrementType: '',
       },
@@ -155,6 +175,7 @@ export default {
         tableName: '',
         tableComment: '',
         primaryKey: [],
+        recordColumn: [],
         incrementKey: '',
         incrementType: '',
       };

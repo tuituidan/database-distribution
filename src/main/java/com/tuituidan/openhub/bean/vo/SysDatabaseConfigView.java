@@ -35,6 +35,8 @@ public class SysDatabaseConfigView {
 
     private String incrementType;
 
+    private String[] recordColumn;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;

@@ -29,4 +29,6 @@ public class SysDatabaseConfigParam {
     private String incrementKey;
 
     private String incrementType;
+
+    private String[] recordColumn;
 }

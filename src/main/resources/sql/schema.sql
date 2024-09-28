@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `sys_database_config` (
     `primary_key` varchar(100) DEFAULT NULL COMMENT '主键名',
     `increment_key` varchar(100) DEFAULT NULL COMMENT '增量字段',
     `increment_type` varchar(100) DEFAULT NULL COMMENT '增量类型',
+    `record_column` varchar(800) DEFAULT NULL COMMENT '日志记录字段',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE
