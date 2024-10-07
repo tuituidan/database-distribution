@@ -39,14 +39,9 @@ public class AppPropertiesConfig {
     private String sqlTableStruct;
 
     /**
-     * 增量查询
+     * 动态查询
      */
-    private String sqlIncrementSearch;
-
-    /**
-     * 主键查询
-     */
-    private String sqlPrimaryKeySearch;
+    private String sqlDynamicSearch;
 
     /**
      * jdbcUrl模版.

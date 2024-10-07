@@ -193,11 +193,10 @@ public class DataAnalyseService {
     private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,
             SysDatabaseConfig config, String incrementValue) {
         Assert.hasText(config.getIncrementKey(), "未配置增量字段，无法增量同步");
-        String sql = StringExtUtils.format(appPropertiesConfig.getSqlIncrementSearch(),
+        String sql = StringExtUtils.format(appPropertiesConfig.getSqlDynamicSearch(),
                 config.getDatabaseName(),
                 config.getTableName(),
-                config.getIncrementKey(),
-                incrementValue);
+                StringExtUtils.format("{} > '{}'", config.getIncrementKey(), incrementValue));
         return mapToJsonList(jdbcTemplate.queryForList(sql));
     }
 
@@ -208,22 +207,21 @@ public class DataAnalyseService {
             String ids = JSON.parseArray(dataLog.getDataLog(), JSONObject.class).stream()
                     .map(item -> item.getString(config.getPrimaryKey()[0]))
                     .distinct().collect(Collectors.joining("','"));
-            String sql = StringExtUtils.format(appPropertiesConfig.getSqlPrimaryKeySearch(),
+            String sql = StringExtUtils.format(appPropertiesConfig.getSqlDynamicSearch(),
                     config.getDatabaseName(),
                     config.getTableName(),
-                    config.getPrimaryKey()[0],
-                    ids);
+                    StringExtUtils.format("{} in ('{}')", config.getPrimaryKey()[0], ids));
             return mapToJsonList(jdbcTemplate.queryForList(sql));
         }
         List<JSONObject> dataList = JSON.parseArray(dataLog.getDataLog(), JSONObject.class);
         List<Map<String, Object>> result = new ArrayList<>();
         for (JSONObject item : dataList) {
-            String where = Arrays.stream(config.getPrimaryKey())
-                    .map(key -> key + "='" + item.get(key) + "'").collect(Collectors.joining(" and "));
-            String sql = StringExtUtils.format("select * from {}.{} where {}",
+            String sql = StringExtUtils.format(appPropertiesConfig.getSqlDynamicSearch(),
                     config.getDatabaseName(),
                     config.getTableName(),
-                    where);
+                    Arrays.stream(config.getPrimaryKey())
+                            .map(key -> key + "='" + item.get(key) + "'")
+                            .collect(Collectors.joining(" and ")));
             result.addAll(jdbcTemplate.queryForList(sql));
         }
         return mapToJsonList(result);

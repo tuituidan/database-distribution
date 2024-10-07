@@ -71,6 +71,10 @@ public class DataPushService {
             List<JSONObject> dataList, List<SysApp> appList) {
         PostTableData postData = buildPostTableData(configView, type, dataList);
         Long dataLogId = createSysDataLog(configView, type, dataList);
+        if (appList.size() == 1) {
+            pushToApp(dataLogId, appList.get(0), postData);
+            return;
+        }
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (SysApp sysApp : appList) {
             futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData))

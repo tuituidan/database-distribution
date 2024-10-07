@@ -31,8 +31,7 @@ app:
   sql-database-table: select TABLE_NAME from information_schema.TABLES where TABLE_SCHEMA ='{}'
   sql-database-table-column: select COLUMN_NAME from information_schema.`COLUMNS` where TABLE_SCHEMA = '{}' and TABLE_NAME ='{}' order by ORDINAL_POSITION
   sql-table-struct: select table_schema,table_name,column_name,ordinal_position from information_schema.columns where table_schema = '{}' and table_name = '{}'
-  sql-increment-search: select * from {}.{} where {} > '{}'
-  sql-primary-key-search: select * from {}.{} where {} in ('{}')
+  sql-dynamic-search: select * from {}.{} where {}
 
 dictionary:
   # 数据字典类型，xlsx-从excel中获取，database-从数据库中获取，需要配置查询sql，remote-远程获取，需要配置url
