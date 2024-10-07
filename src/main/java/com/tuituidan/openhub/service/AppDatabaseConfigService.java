@@ -75,7 +75,8 @@ public class AppDatabaseConfigService {
         List<SysDataSource> dataSources = sysDataSourceMapper.selectByIds(ids);
 
         List<TreeView> resultList = dataSources.stream()
-                .map(item -> new TreeView().setId(item.getId().toString())
+                .map(item -> new TreeView().setType("datasource")
+                        .setId(item.getId().toString())
                         .setName(StringExtUtils.format("{}({}:{})",
                                 item.getName(), item.getHost(), item.getPort())))
                 .collect(Collectors.toList());
@@ -84,14 +85,19 @@ public class AppDatabaseConfigService {
             String dbNodeKey = config.getDatasourceId() + config.getDatabaseName();
             TreeView dbNode = databaseNodeMap.computeIfAbsent(dbNodeKey,
                     k -> {
-                        TreeView parentNode = new TreeView().setId(StringExtUtils.getUuid())
+                        TreeView parentNode = new TreeView()
+                                .setId(StringExtUtils.getUuid())
+                                .setType("database")
                                 .setName(config.getDatabaseName())
                                 .setPid(config.getDatasourceId().toString());
                         resultList.add(parentNode);
                         return parentNode;
                     });
-            resultList.add(new TreeView().setId(config.getId().toString())
-                    .setPid(dbNode.getId()).setName(StringExtUtils.format("{}({})",
+            resultList.add(new TreeView()
+                    .setId(config.getId().toString())
+                    .setType("table")
+                    .setPid(dbNode.getId())
+                    .setName(StringExtUtils.format("{}({})",
                             config.getTableComment(), config.getTableName())));
         }
         return TreeUtils.buildTree(resultList);

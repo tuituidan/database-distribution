@@ -1,11 +1,14 @@
 <template>
   <div class="app-container">
-    <el-row>
-      <el-col :span="14">
+    <el-row :gutter="10">
+      <el-col :span="10">
         <sys-app @rowChange="rowChange"></sys-app>
       </el-col>
-      <el-col :span="9" :offset="1">
-        <app-database-config ref="refAppDatabaseConfig"></app-database-config>
+      <el-col :span="7">
+        <app-database-config ref="refAppDatabaseConfig" @node-change="nodeChange"></app-database-config>
+      </el-col>
+      <el-col :span="7">
+        <sys-app-data-rule ref="refAppDataRule"></sys-app-data-rule>
       </el-col>
     </el-row>
   </div>
@@ -17,6 +20,7 @@ export default {
   components: {
     'sys-app': () => import('./sys-app'),
     'app-database-config': () => import('./app-database-config'),
+    'sys-app-data-rule': () => import('./sys-app-data-rule'),
   },
   data() {
     return {};
@@ -26,7 +30,10 @@ export default {
   methods: {
     rowChange(row) {
       this.$refs.refAppDatabaseConfig.loadConfig(row);
-    }
+    },
+    nodeChange(node){
+      this.$refs.refAppDataRule.loadRule(node);
+    },
   },
 }
 </script>

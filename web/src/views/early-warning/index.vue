@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
-    <el-row>
-      <el-col :span="13">
+    <el-row :gutter="10">
+      <el-col :span="14">
         <schedule-task></schedule-task>
       </el-col>
-      <el-col :span="9" :offset="2">
+      <el-col :span="10">
         <warning-email></warning-email>
       </el-col>
     </el-row>

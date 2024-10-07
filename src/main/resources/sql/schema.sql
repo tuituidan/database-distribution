@@ -51,6 +51,17 @@ CREATE TABLE IF NOT EXISTS `sys_app_database_config` (
     PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='应用数据库关联配置';
 
+CREATE TABLE IF NOT EXISTS `sys_app_data_rule` (
+    `id` bigint(20) NOT NULL COMMENT '主键',
+    `app_id` bigint(20) NOT NULL COMMENT '应用ID',
+    `database_config_id` bigint(20) NOT NULL COMMENT '数据库配置ID',
+    `rule_type` varchar(100) NOT NULL COMMENT '过滤规则类型',
+    `rule_exp` varchar(2000) DEFAULT NULL COMMENT '过滤规则表达式',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`) USING BTREE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='数据过滤规则';
+
 CREATE TABLE IF NOT EXISTS `sys_data_log` (
     `id` bigint(20) NOT NULL COMMENT '主键',
     `datasource_id` bigint(20) NOT NULL COMMENT '数据源ID',

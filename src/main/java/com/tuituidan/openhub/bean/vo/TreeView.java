@@ -26,6 +26,8 @@ public class TreeView implements TreeData<TreeView> {
 
     private String pid;
 
+    private String type;
+
     private List<TreeView> children;
 
 }

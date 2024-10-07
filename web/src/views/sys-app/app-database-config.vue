@@ -16,6 +16,7 @@
       <el-tree
         ref="refTree"
         default-expand-all
+        @node-click="nodeClick"
         :data="treeList"
         :props="{label: 'name'}"
         node-key="id"
@@ -56,7 +57,6 @@ export default {
         this.appId = row.id;
       }
       this.loading = true;
-      console.log(this.appId);
       this.$http.get(`/api/v1/sys_app/${this.appId}/database_config`)
         .then(res => {
           this.$refs.refTree.setCheckedKeys(res);
@@ -80,6 +80,11 @@ export default {
           this.loading = false;
         });
     },
+    nodeClick(node) {
+      if (node.type === 'table') {
+        this.$emit('node-change', {appId: this.appId, ...node})
+      }
+    }
   }
 }
 </script>
