@@ -77,7 +77,7 @@ public class DataPushService {
         }
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (SysApp sysApp : appList) {
-            futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData))
+            futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData), "data-push")
                     .exceptionally(ex -> {
                         log.error("数据日志推送异常", ex);
                         return null;

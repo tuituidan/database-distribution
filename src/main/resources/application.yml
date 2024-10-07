@@ -37,5 +37,13 @@ dictionary:
   # 数据字典类型，xlsx-从excel中获取，database-从数据库中获取，需要配置查询sql，remote-远程获取，需要配置url
   type: xlsx
 thread-pool:
-  queue-size: 2000
+  core-pool-num: 2
+  max-pool-num: 2
   thread-name-prefix: database-distribution
+  ext-pool:
+    data-analyse:
+      queue-size: 2000
+      thread-name-prefix: data-analyse
+    data-push:
+      queue-size: 2000
+      thread-name-prefix: data-push

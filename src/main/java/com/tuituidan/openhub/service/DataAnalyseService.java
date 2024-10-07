@@ -111,7 +111,7 @@ public class DataAnalyseService {
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                     k -> getDatabaseConfigView(config)));
             dataPushService.push(configView, type, buildDataList(configView, rows), appList);
-        }).exceptionally(ex -> {
+        }, "data-analyse").exceptionally(ex -> {
             log.error("数据日志解析异常", ex);
             return null;
         });
