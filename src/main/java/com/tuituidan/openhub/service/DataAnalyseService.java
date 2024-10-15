@@ -5,20 +5,25 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.tuituidan.openhub.bean.entity.SysApp;
+import com.tuituidan.openhub.bean.entity.SysAppDataRule;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.config.AppPropertiesConfig;
 import com.tuituidan.openhub.consts.Consts;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
+import com.tuituidan.openhub.consts.enums.FilterTypeEnum;
 import com.tuituidan.openhub.consts.enums.IncrementTypeEnum;
+import com.tuituidan.openhub.mapper.SysAppDataRuleMapper;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
+import com.tuituidan.tresdin.util.ExpParserUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
 import java.io.ByteArrayInputStream;
@@ -50,6 +55,8 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import tk.mybatis.mapper.weekend.Weekend;
+import tk.mybatis.mapper.weekend.WeekendCriteria;
 
 /**
  * DataAnalyseService.
@@ -81,13 +88,16 @@ public class DataAnalyseService {
     private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
 
     @Resource
-    private Cache<Long, List<SysApp>> databaseAppConfigCache;
+    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
 
     @Resource
     private SysAppMapper sysAppMapper;
 
     @Resource
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
+
+    @Resource
+    private SysAppDataRuleMapper sysAppDataRuleMapper;
 
     /**
      * 数据库监听数据解析
@@ -103,14 +113,22 @@ public class DataAnalyseService {
         if (config == null) {
             return;
         }
-        List<SysApp> appList = getAppList(config.getId());
-        if (CollectionUtils.isEmpty(appList)) {
+        List<SysAppView> appViewList = getAppList(config.getId());
+        if (CollectionUtils.isEmpty(appViewList)) {
             return;
         }
         CompletableUtils.runAsync(() -> {
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                     k -> getDatabaseConfigView(config)));
-            dataPushService.push(configView, type, buildDataList(configView, rows), appList);
+            List<JSONObject> dataList = buildDataList(configView, rows);
+            for (JSONObject data : dataList) {
+                List<SysAppView> appList = filterAppByData(configView.getJdbcTemplate(), appViewList, data);
+                if (CollectionUtils.isEmpty(appList)) {
+                    continue;
+                }
+                dataPushService.push(configView, type, Collections.singletonList(data), appList);
+            }
+
         }, "data-analyse").exceptionally(ex -> {
             log.error("数据日志解析异常", ex);
             return null;
@@ -128,16 +146,19 @@ public class DataAnalyseService {
             SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(configId);
             Assert.notNull(config, "配置查询失败");
             checkIncrementValue(config.getIncrementType(), incrementValue);
-            List<SysApp> appList = getAppList(configId);
-            if (CollectionUtils.isEmpty(appList)) {
+            List<SysAppView> appViewList = getAppList(configId);
+            if (CollectionUtils.isEmpty(appViewList)) {
                 return;
             }
             SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                     k -> getDatabaseConfigView(config)));
             List<JSONObject> dataList = buildDataList(configView.getJdbcTemplate(), config, incrementValue);
-            for (JSONObject item : dataList) {
-                // 拆成单条，避免数据过大
-                dataPushService.push(configView, DataChangeEnum.REPLACE, Collections.singletonList(item), appList);
+            for (JSONObject data : dataList) {
+                List<SysAppView> appList = filterAppByData(configView.getJdbcTemplate(), appViewList, data);
+                if (CollectionUtils.isEmpty(appList)) {
+                    continue;
+                }
+                dataPushService.push(configView, DataChangeEnum.REPLACE, Collections.singletonList(data), appList);
             }
         }
     }
@@ -151,16 +172,20 @@ public class DataAnalyseService {
     public void analyse(SysDataLog dataLog, SysPushLog pushLog) {
         SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(dataLog.getDatabaseConfigId());
         Assert.notNull(config, "配置查询失败");
-        SysApp sysApp = sysAppMapper.selectByPrimaryKey(pushLog.getAppId());
+        List<SysAppView> appViewList = getAppList(config.getId());
+        SysAppView sysApp = appViewList.stream().filter(item -> Objects.equals(pushLog.getAppId(), item.getId()))
+                .findFirst().orElse(null);
         if (sysApp == null) {
             return;
         }
         SysDatabaseConfigView configView = Objects.requireNonNull(databaseConfigViewCache.get(config.getId(),
                 k -> getDatabaseConfigView(config)));
         List<JSONObject> dataList = buildDataList(configView.getJdbcTemplate(), config, dataLog);
-        for (JSONObject item : dataList) {
-            // 拆成单条，避免数据过大
-            dataPushService.push(configView, pushLog, Collections.singletonList(item), sysApp);
+        for (JSONObject data : dataList) {
+            if (CollectionUtils.isEmpty(sysApp.getDataRules())
+                    || filterByAppRules(configView.getJdbcTemplate(), sysApp.getDataRules(), data)) {
+                dataPushService.push(configView, pushLog, Collections.singletonList(data), sysApp);
+            }
         }
     }
 
@@ -178,16 +203,58 @@ public class DataAnalyseService {
         return configView;
     }
 
-    private List<SysApp> getAppList(Long configId) {
+    private List<SysAppView> getAppList(Long configId) {
         return databaseAppConfigCache.get(configId, key -> {
             Set<Long> appIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig()
                             .setDatabaseConfigId(configId)).stream().map(SysAppDatabaseConfig::getAppId)
                     .collect(Collectors.toSet());
             if (CollectionUtils.isEmpty(appIds)) {
-                return null;
+                return Collections.emptyList();
             }
-            return sysAppMapper.selectByIds(StringUtils.join(appIds, ","));
+            Weekend<SysAppDataRule> weekend = Weekend.of(SysAppDataRule.class);
+            WeekendCriteria<SysAppDataRule, Object> criteria = weekend.weekendCriteria();
+            criteria.andIn(SysAppDataRule::getAppId, appIds);
+            criteria.andEqualTo(SysAppDataRule::getDatabaseConfigId, configId);
+            List<SysAppDataRule> ruleList = sysAppDataRuleMapper.selectByExample(weekend);
+            Map<Long, List<SysAppDataRule>> ruleMap =
+                    ruleList.stream().collect(Collectors.groupingBy(SysAppDataRule::getAppId));
+            List<SysApp> appList = sysAppMapper.selectByIds(StringUtils.join(appIds, ","));
+            return appList.stream().map(app -> BeanExtUtils.convert(app, SysAppView::new)
+                    .setDataRules(ruleMap.get(app.getId()))).collect(Collectors.toList());
         });
+    }
+
+    private List<SysAppView> filterAppByData(JdbcTemplate jdbcTemplate,
+            List<SysAppView> appList, JSONObject data) {
+        List<SysAppView> resultList = new ArrayList<>();
+        for (SysAppView appView : appList) {
+            if (CollectionUtils.isEmpty(appView.getDataRules())
+                    || filterByAppRules(jdbcTemplate, appView.getDataRules(), data)) {
+                resultList.add(appView);
+            }
+        }
+        return resultList;
+    }
+
+    private boolean filterByAppRules(JdbcTemplate jdbcTemplate,
+            List<SysAppDataRule> rules, JSONObject data) {
+        boolean filterResult;
+        for (SysAppDataRule rule : rules) {
+            if (FilterTypeEnum.EXP.getCode().equals(rule.getRuleType())) {
+                filterResult = ExpParserUtils.evaluate(rule.getRuleExp(), data);
+                if (!filterResult) {
+                    return false;
+                }
+            }
+            if (FilterTypeEnum.SQL.getCode().equals(rule.getRuleType())) {
+                String sql = ExpParserUtils.template(rule.getRuleExp(), data);
+                filterResult = CollectionUtils.isNotEmpty(jdbcTemplate.queryForList(sql));
+                if (!filterResult) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private List<JSONObject> buildDataList(JdbcTemplate jdbcTemplate,

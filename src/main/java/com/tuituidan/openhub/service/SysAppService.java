@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
@@ -37,7 +38,7 @@ public class SysAppService implements ApplicationRunner {
     private Cache<Long, SysApp> sysAppCache;
 
     @Resource
-    private Cache<Long, List<SysApp>> databaseAppConfigCache;
+    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
 
     @Override
     public void run(ApplicationArguments args) {

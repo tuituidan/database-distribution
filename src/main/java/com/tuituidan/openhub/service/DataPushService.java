@@ -4,9 +4,9 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
-import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
@@ -68,7 +68,7 @@ public class DataPushService {
      * @param dataList dataList
      */
     public void push(SysDatabaseConfigView configView, DataChangeEnum type,
-            List<JSONObject> dataList, List<SysApp> appList) {
+            List<JSONObject> dataList, List<SysAppView> appList) {
         PostTableData postData = buildPostTableData(configView, type, dataList);
         Long dataLogId = createSysDataLog(configView, type, dataList);
         if (appList.size() == 1) {
@@ -76,7 +76,7 @@ public class DataPushService {
             return;
         }
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        for (SysApp sysApp : appList) {
+        for (SysAppView sysApp : appList) {
             futures.add(CompletableUtils.runAsync(() -> pushToApp(dataLogId, sysApp, postData), "data-push")
                     .exceptionally(ex -> {
                         log.error("数据日志推送异常", ex);
@@ -95,7 +95,7 @@ public class DataPushService {
      * @param sysApp sysApp
      */
     public void push(SysDatabaseConfigView configView, SysPushLog pushLog,
-            List<JSONObject> dataList, SysApp sysApp) {
+            List<JSONObject> dataList, SysAppView sysApp) {
         PostTableData postData = buildPostTableData(configView, DataChangeEnum.REPLACE, dataList);
         pushToApp(pushLog, sysApp, postData);
     }
@@ -141,7 +141,7 @@ public class DataPushService {
                 .setPrimaryKey(configView.getPrimaryKey());
     }
 
-    private void pushToApp(Long dataLogId, SysApp sysApp, PostTableData postData) {
+    private void pushToApp(Long dataLogId, SysAppView sysApp, PostTableData postData) {
         SysPushLog pushLog = new SysPushLog();
         long startTime = System.currentTimeMillis();
         pushLog.setAppId(sysApp.getId())
@@ -153,7 +153,7 @@ public class DataPushService {
         sysPushLogMapper.insert(pushLog);
     }
 
-    private void pushToApp(SysPushLog pushLog, SysApp sysApp, PostTableData postData) {
+    private void pushToApp(SysPushLog pushLog, SysAppView sysApp, PostTableData postData) {
         try {
             ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
                     .header("AppKey", sysApp.getAppKey())
@@ -169,7 +169,7 @@ public class DataPushService {
         }
     }
 
-    private String analysePushStatus(ResponseEntity<String> response, SysApp sysApp) {
+    private String analysePushStatus(ResponseEntity<String> response, SysAppView sysApp) {
         if (StringUtils.isBlank(sysApp.getResultExp())) {
             return response.getStatusCode().is2xxSuccessful()
                     ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
@@ -182,7 +182,7 @@ public class DataPushService {
                 ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
     }
 
-    private String getToken(SysApp sysApp) {
+    private String getToken(SysAppView sysApp) {
         return appTokenCache.get(sysApp.getAppKey(), key -> Jwts.builder().setSubject(key)
                 .signWith(SignatureAlgorithm.HS512, sysApp.getAppSecret())
                 .setExpiration(DateUtils.addMinutes(new Date(), 30))

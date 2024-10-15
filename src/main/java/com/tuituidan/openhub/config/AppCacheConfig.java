@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.service.DatasourceClient;
 import java.util.List;
@@ -48,7 +49,7 @@ public class AppCacheConfig {
      * @return Cache
      */
     @Bean
-    public Cache<Long, List<SysApp>> databaseAppConfigCache() {
+    public Cache<Long, List<SysAppView>> databaseAppConfigCache() {
         return Caffeine.newBuilder().build();
     }
 

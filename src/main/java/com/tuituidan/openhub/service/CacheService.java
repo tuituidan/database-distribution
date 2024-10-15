@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.consts.Consts;
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class CacheService {
     private Cache<String, SysDatabaseConfig> databaseConfigCache;
 
     @Resource
-    private Cache<Long, List<SysApp>> databaseAppConfigCache;
+    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
 
     @Resource
     private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;

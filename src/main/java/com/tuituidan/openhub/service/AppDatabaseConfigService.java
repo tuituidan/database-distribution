@@ -1,10 +1,10 @@
 package com.tuituidan.openhub.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.bean.vo.TreeView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
@@ -46,7 +46,7 @@ public class AppDatabaseConfigService {
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
 
     @Resource
-    private Cache<Long, List<SysApp>> databaseAppConfigCache;
+    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
 
     /**
      * selectIds
