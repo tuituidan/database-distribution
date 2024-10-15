@@ -5,6 +5,7 @@ import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
 import com.tuituidan.openhub.bean.vo.LineData;
+import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.mapper.HomeMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -156,6 +157,23 @@ public class HomeService {
         for (Entry<Long, SysApp> entry : entries) {
             resultList.add(new LineData().setXdata(entry.getValue().getAppName())
                     .setYdata(dataMap.get(entry.getKey())));
+        }
+        return resultList;
+    }
+
+    /**
+     * selectAppCostTime
+     *
+     * @return List
+     */
+    public List<LineData> selectOperType() {
+        List<LineData> lineData = homeMapper.selectOperType();
+        Map<String, Integer> dataMap = lineData.stream().collect(Collectors.toMap(LineData::getName,
+                LineData::getYdata));
+        List<LineData> resultList = new ArrayList<>();
+        for (DataChangeEnum type : DataChangeEnum.values()) {
+            resultList.add(new LineData().setXdata(type.getName())
+                    .setYdata(dataMap.get(type.getCode())));
         }
         return resultList;
     }

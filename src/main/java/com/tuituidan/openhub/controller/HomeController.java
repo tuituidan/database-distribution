@@ -116,4 +116,14 @@ public class HomeController {
         return homeService.selectAppCostTime();
     }
 
+    /**
+     * selectOperType
+     *
+     * @return List
+     */
+    @GetMapping("/data_log/oper_type")
+    public List<LineData> selectOperType() {
+        return homeService.selectOperType();
+    }
+
 }

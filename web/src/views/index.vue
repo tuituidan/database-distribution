@@ -14,11 +14,14 @@
       <el-col :span="12">
         <line-charts title="近30天数据推送情况" url="/api/v1/home/push_log/last_month/line"></line-charts>
       </el-col>
-      <el-col :span="16">
-        <bar-charts title="数据表生成分布" url="/api/v1/home/data_log/table/count"></bar-charts>
+      <el-col :span="12">
+        <bar-charts title="数据生成类型" url="/api/v1/home/data_log/oper_type"></bar-charts>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="12">
         <bar-charts title="应用推送平均耗时" url="/api/v1/home/push_log/app/cost_time"></bar-charts>
+      </el-col>
+      <el-col :span="24">
+        <bar-charts title="数据表生成分布" url="/api/v1/home/data_log/table/count"></bar-charts>
       </el-col>
     </el-row>
   </div>

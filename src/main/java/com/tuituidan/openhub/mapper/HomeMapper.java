@@ -82,4 +82,11 @@ public interface HomeMapper {
      */
     List<LineData> selectAppCostTime();
 
+    /**
+     * selectOperType
+     *
+     * @return List
+     */
+    List<LineData> selectOperType();
+
 }

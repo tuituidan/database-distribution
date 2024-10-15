@@ -50,8 +50,15 @@
         select concat(database_name, table_name) as xdata,count(*) as ydata from sys_data_log
         GROUP BY database_name,table_name;
     </select>
+
     <select id="selectAppCostTime" resultType="com.tuituidan.openhub.bean.vo.LineData">
         select app_id as id,sum(cost_time)/count(*) as ydata
         from sys_push_log GROUP BY app_id
+    </select>
+
+    <select id="selectOperType" resultType="com.tuituidan.openhub.bean.vo.LineData">
+        select oper_type as name, COUNT(*) as ydata
+        from sys_data_log
+        group by oper_type
     </select>
 </mapper>
