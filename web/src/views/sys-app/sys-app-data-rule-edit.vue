@@ -25,7 +25,11 @@
           <i class="el-icon-question"></i>
           </el-tooltip>
         </span>
-        <el-input v-model="form.ruleExp" placeholder="请输入过滤规则表达式" maxlength="400" v-trim/>
+        <el-input type="textarea"
+                  clearable
+                  v-model="form.ruleExp"
+                  autosize
+                  placeholder="请输入过滤规则表达式" maxlength="2000" v-trim/>
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
