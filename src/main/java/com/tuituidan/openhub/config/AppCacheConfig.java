@@ -4,11 +4,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
-import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
-import com.tuituidan.openhub.bean.vo.SysAppView;
-import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
+import com.tuituidan.openhub.bean.vo.DataConfigView;
 import com.tuituidan.openhub.service.DatasourceClient;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,27 +36,7 @@ public class AppCacheConfig {
      * @return Cache
      */
     @Bean
-    public Cache<String, SysDatabaseConfig> databaseConfigCache() {
-        return Caffeine.newBuilder().build();
-    }
-
-    /**
-     * databaseAppConfigCache
-     *
-     * @return Cache
-     */
-    @Bean
-    public Cache<Long, List<SysAppView>> databaseAppConfigCache() {
-        return Caffeine.newBuilder().build();
-    }
-
-    /**
-     * databaseConfigViewCache
-     *
-     * @return Cache
-     */
-    @Bean
-    public Cache<Long, SysDatabaseConfigView> databaseConfigViewCache() {
+    public Cache<String, DataConfigView> dataConfigCache() {
         return Caffeine.newBuilder().build();
     }
 

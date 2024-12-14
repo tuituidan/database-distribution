@@ -4,14 +4,11 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppParam;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
-import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysAppMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -38,7 +35,7 @@ public class SysAppService implements ApplicationRunner {
     private Cache<Long, SysApp> sysAppCache;
 
     @Resource
-    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
+    private CacheService cacheService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -74,9 +71,7 @@ public class SysAppService implements ApplicationRunner {
         saveItem.setId(id);
         sysAppMapper.updateByPrimaryKeySelective(saveItem);
         sysAppCache.put(id, saveItem);
-        Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
-                .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
-        databaseAppConfigCache.invalidateAll(configIds);
+        cacheService.refreshCacheByAppId(id);
     }
 
     private void checkUnique(Long id, SysAppParam param) {
@@ -94,9 +89,7 @@ public class SysAppService implements ApplicationRunner {
         sysAppMapper.deleteByPrimaryKey(id);
         sysAppDatabaseConfigMapper.delete(new SysAppDatabaseConfig().setAppId(id));
         sysAppCache.invalidate(id);
-        Set<Long> configIds = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(id))
-                .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).collect(Collectors.toSet());
-        databaseAppConfigCache.invalidateAll(configIds);
+        cacheService.refreshCacheByAppId(id);
     }
 
 }

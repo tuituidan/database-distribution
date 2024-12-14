@@ -1,27 +1,21 @@
 package com.tuituidan.openhub.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.tuituidan.openhub.bean.dto.SysDataSourceParam;
 import com.tuituidan.openhub.bean.entity.SysAppDatabaseConfig;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
-import com.tuituidan.openhub.config.AppPropertiesConfig;
-import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.consts.enums.StatusEnum;
 import com.tuituidan.openhub.mapper.SysAppDatabaseConfigMapper;
 import com.tuituidan.openhub.mapper.SysDataSourceMapper;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -35,7 +29,7 @@ import org.springframework.util.Assert;
  */
 @Service
 @Slf4j
-public class DataSourceService implements ApplicationRunner {
+public class DataSourceService {
 
     @Resource
     private SysDataSourceMapper sysDataSourceMapper;
@@ -47,35 +41,10 @@ public class DataSourceService implements ApplicationRunner {
     private SysAppDatabaseConfigMapper sysAppDatabaseConfigMapper;
 
     @Resource
-    private AppPropertiesConfig appPropertiesConfig;
-
-    @Resource
-    private Cache<Long, SysDataSource> sysDataSourceCache;
+    private CacheService cacheService;
 
     @Resource
     private Cache<Long, DatasourceClient> datasourceClientCache;
-
-    @Resource
-    private DataAnalyseService dataAnalyseService;
-
-    @Override
-    public void run(ApplicationArguments args) {
-        List<SysDataSource> dataSourceList = selectAll();
-        for (SysDataSource dataSource : dataSourceList) {
-            datasourceClientCache.put(dataSource.getId(), createClient(dataSource));
-            sysDataSourceCache.put(dataSource.getId(), dataSource);
-        }
-    }
-
-    private DatasourceClient createClient(SysDataSource dataSource) {
-        return new DatasourceClient(dataSource, appPropertiesConfig) {
-            @Override
-            public void handler(TableMapEventData tableEvent, DataChangeEnum type,
-                    List<Serializable[]> rows) {
-                dataAnalyseService.analyse(tableEvent, type, rows);
-            }
-        };
-    }
 
     /**
      * selectAll
@@ -98,15 +67,12 @@ public class DataSourceService implements ApplicationRunner {
         if (id == null) {
             saveItem.setStatus(StatusEnum.STOP.getCode());
             sysDataSourceMapper.insertSelective(saveItem);
-            sysDataSourceCache.put(saveItem.getId(), saveItem);
-            datasourceClientCache.put(saveItem.getId(), createClient(saveItem));
+            cacheService.refreshDataSourceCache(saveItem.getId(), saveItem);
             return;
         }
         saveItem.setId(id);
         sysDataSourceMapper.updateByPrimaryKeySelective(saveItem);
-        sysDataSourceCache.put(id, saveItem);
-        datasourceClientCache.invalidate(id);
-        datasourceClientCache.put(id, createClient(saveItem));
+        cacheService.refreshDataSourceCache(id, saveItem);
     }
 
     private void checkUnique(Long id, SysDataSourceParam param) {
@@ -152,8 +118,7 @@ public class DataSourceService implements ApplicationRunner {
         List<SysDatabaseConfig> configs = sysDatabaseConfigMapper.select(new SysDatabaseConfig().setDatasourceId(id));
         Assert.isTrue(CollectionUtils.isEmpty(configs), "存在数据库监听配置，无法删除");
         sysDataSourceMapper.deleteByPrimaryKey(id);
-        sysDataSourceCache.invalidate(id);
-        datasourceClientCache.invalidate(id);
+        cacheService.refreshDataSourceCache(id, null);
     }
 
     /**

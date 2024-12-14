@@ -6,8 +6,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
+import com.tuituidan.openhub.bean.vo.DataConfigView;
 import com.tuituidan.openhub.bean.vo.SysAppView;
-import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.bean.vo.TableStruct;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.consts.enums.PushStatusEnum;
@@ -67,7 +67,7 @@ public class DataPushService {
      * @param type type
      * @param dataList dataList
      */
-    public void push(SysDatabaseConfigView configView, DataChangeEnum type,
+    public void push(DataConfigView configView, DataChangeEnum type,
             List<JSONObject> dataList, List<SysAppView> appList) {
         PostTableData postData = buildPostTableData(configView, type, dataList);
         Long dataLogId = createSysDataLog(configView, type, dataList);
@@ -94,13 +94,13 @@ public class DataPushService {
      * @param dataList dataList
      * @param sysApp sysApp
      */
-    public void push(SysDatabaseConfigView configView, SysPushLog pushLog,
+    public void push(DataConfigView configView, SysPushLog pushLog,
             List<JSONObject> dataList, SysAppView sysApp) {
         PostTableData postData = buildPostTableData(configView, DataChangeEnum.REPLACE, dataList);
         pushToApp(pushLog, sysApp, postData);
     }
 
-    private Long createSysDataLog(SysDatabaseConfigView configView, DataChangeEnum type,
+    private Long createSysDataLog(DataConfigView configView, DataChangeEnum type,
             List<JSONObject> dataList) {
         SysDataLog dataLog = new SysDataLog()
                 .setId(SnowFlake.newId())
@@ -130,7 +130,7 @@ public class DataPushService {
         return JSONObject.toJSONString(resultList);
     }
 
-    private PostTableData buildPostTableData(SysDatabaseConfigView configView, DataChangeEnum type,
+    private PostTableData buildPostTableData(DataConfigView configView, DataChangeEnum type,
             List<JSONObject> dataList) {
         return new PostTableData().setDataList(dataList)
                 .setTable(configView.getTableName())

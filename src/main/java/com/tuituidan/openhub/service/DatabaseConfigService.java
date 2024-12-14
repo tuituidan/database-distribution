@@ -1,17 +1,13 @@
 package com.tuituidan.openhub.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysDatabaseConfigParam;
 import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
-import com.tuituidan.openhub.bean.vo.SysDatabaseConfigView;
 import com.tuituidan.openhub.mapper.SysDatabaseConfigMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -24,24 +20,13 @@ import org.springframework.util.Assert;
  */
 @Service
 @Slf4j
-public class DatabaseConfigService implements ApplicationRunner {
-
-    @Resource
-    private Cache<String, SysDatabaseConfig> databaseConfigCache;
-
-    @Resource
-    private Cache<Long, SysDatabaseConfigView> databaseConfigViewCache;
+public class DatabaseConfigService {
 
     @Resource
     private SysDatabaseConfigMapper sysDatabaseConfigMapper;
 
-    @Override
-    public void run(ApplicationArguments args) {
-        List<SysDatabaseConfig> configs = sysDatabaseConfigMapper.selectAll();
-        for (SysDatabaseConfig config : configs) {
-            databaseConfigCache.put(config.getDatabaseName() + config.getTableName(), config);
-        }
-    }
+    @Resource
+    private CacheService cacheService;
 
     /**
      * select
@@ -68,9 +53,7 @@ public class DatabaseConfigService implements ApplicationRunner {
             saveItem.setId(id);
             sysDatabaseConfigMapper.updateByPrimaryKeySelective(saveItem);
         }
-        String cacheKey = param.getDatabaseName() + param.getTableName();
-        databaseConfigCache.put(cacheKey, saveItem);
-        databaseConfigViewCache.invalidate(saveItem.getId());
+        cacheService.refreshDataConfigCache(id);
     }
 
     private void checkUnique(Long id, SysDatabaseConfigParam param) {
@@ -90,9 +73,7 @@ public class DatabaseConfigService implements ApplicationRunner {
         SysDatabaseConfig config = sysDatabaseConfigMapper.selectByPrimaryKey(id);
         Assert.notNull(config, "配置不存在");
         sysDatabaseConfigMapper.deleteByPrimaryKey(id);
-        String cacheKey = config.getDatabaseName() + config.getTableName();
-        databaseConfigCache.invalidate(cacheKey);
-        databaseConfigViewCache.invalidate(id);
+        cacheService.refreshDataConfigCache(id);
     }
 
 }

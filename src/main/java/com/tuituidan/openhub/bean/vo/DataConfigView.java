@@ -1,6 +1,5 @@
 package com.tuituidan.openhub.bean.vo;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,16 +7,16 @@ import lombok.experimental.Accessors;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * SysDataSource.
+ * DataConfigView.
  *
  * @author tuituidan
  * @version 1.0
- * @date 2024/8/31
+ * @date 2024/11/10
  */
 @Getter
 @Setter
 @Accessors(chain = true)
-public class SysDatabaseConfigView {
+public class DataConfigView {
 
     private Long id;
 
@@ -37,14 +36,12 @@ public class SysDatabaseConfigView {
 
     private String[] recordColumn;
 
-    private LocalDateTime createTime;
-
-    private LocalDateTime updateTime;
-
     private String timeZone;
 
     private JdbcTemplate jdbcTemplate;
 
     private List<TableStruct> tableStruct;
+
+    private List<SysAppView> appList;
 
 }

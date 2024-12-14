@@ -3,7 +3,7 @@ package com.tuituidan.openhub.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.entity.SysApp;
 import com.tuituidan.openhub.bean.entity.SysDataSource;
-import com.tuituidan.openhub.bean.entity.SysDatabaseConfig;
+import com.tuituidan.openhub.bean.vo.DataConfigView;
 import com.tuituidan.openhub.bean.vo.LineData;
 import com.tuituidan.openhub.consts.enums.DataChangeEnum;
 import com.tuituidan.openhub.mapper.HomeMapper;
@@ -42,7 +42,7 @@ public class HomeService {
     private Cache<Long, SysDataSource> sysDataSourceCache;
 
     @Resource
-    private Cache<String, SysDatabaseConfig> databaseConfigCache;
+    private Cache<String, DataConfigView> dataConfigCache;
 
     /**
      * selectAllDataLogCount
@@ -136,7 +136,7 @@ public class HomeService {
         Map<String, Integer> dataMap = lineData.stream().collect(Collectors.toMap(LineData::getXdata,
                 LineData::getYdata));
         List<LineData> resultList = new ArrayList<>();
-        for (Entry<String, SysDatabaseConfig> entry : databaseConfigCache.asMap().entrySet()) {
+        for (Entry<String, DataConfigView> entry : dataConfigCache.asMap().entrySet()) {
             resultList.add(new LineData().setXdata(entry.getValue().getTableComment())
                     .setYdata(dataMap.get(entry.getKey())));
         }

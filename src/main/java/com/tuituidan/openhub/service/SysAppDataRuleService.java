@@ -1,14 +1,10 @@
 package com.tuituidan.openhub.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.SysAppDataRuleParam;
 import com.tuituidan.openhub.bean.entity.SysAppDataRule;
-import com.tuituidan.openhub.bean.vo.SysAppView;
 import com.tuituidan.openhub.mapper.SysAppDataRuleMapper;
 import com.tuituidan.tresdin.util.BeanExtUtils;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,7 +23,7 @@ public class SysAppDataRuleService {
     private SysAppDataRuleMapper sysAppDataRuleMapper;
 
     @Resource
-    private Cache<Long, List<SysAppView>> databaseAppConfigCache;
+    private CacheService cacheService;
 
     /**
      * selectAll
@@ -54,7 +50,7 @@ public class SysAppDataRuleService {
         }
         saveItem.setId(id);
         sysAppDataRuleMapper.updateByPrimaryKeySelective(saveItem);
-        databaseAppConfigCache.invalidate(saveItem.getDatabaseConfigId());
+        cacheService.refreshDataConfigCache(saveItem.getDatabaseConfigId());
     }
 
     /**
@@ -64,9 +60,9 @@ public class SysAppDataRuleService {
      */
     public void delete(Long[] id) {
         List<SysAppDataRule> rules = sysAppDataRuleMapper.selectByIds(StringUtils.join(id, ","));
-        Set<Long> configs = rules.stream().map(SysAppDataRule::getDatabaseConfigId).collect(Collectors.toSet());
+        Long[] configs = rules.stream().map(SysAppDataRule::getDatabaseConfigId).distinct().toArray(Long[]::new);
         sysAppDataRuleMapper.deleteByIds(StringUtils.join(id, ","));
-        databaseAppConfigCache.invalidateAll(configs);
+        cacheService.refreshDataConfigCache(configs);
 
     }
 
