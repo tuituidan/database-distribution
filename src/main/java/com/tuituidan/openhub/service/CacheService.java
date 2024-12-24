@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -148,6 +149,9 @@ public class CacheService implements ApplicationRunner {
     public void refreshCacheByAppId(Long appId) {
         Long[] ids = sysAppDatabaseConfigMapper.select(new SysAppDatabaseConfig().setAppId(appId))
                 .stream().map(SysAppDatabaseConfig::getDatabaseConfigId).distinct().toArray(Long[]::new);
+        if (ArrayUtils.isEmpty(ids)) {
+            return;
+        }
         refreshDataConfigCache(ids);
     }
 

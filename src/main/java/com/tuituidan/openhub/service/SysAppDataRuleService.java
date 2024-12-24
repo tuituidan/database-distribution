@@ -46,6 +46,7 @@ public class SysAppDataRuleService {
         SysAppDataRule saveItem = BeanExtUtils.convert(param, SysAppDataRule::new);
         if (id == null) {
             sysAppDataRuleMapper.insertSelective(saveItem);
+            cacheService.refreshDataConfigCache(saveItem.getDatabaseConfigId());
             return;
         }
         saveItem.setId(id);
@@ -63,7 +64,6 @@ public class SysAppDataRuleService {
         Long[] configs = rules.stream().map(SysAppDataRule::getDatabaseConfigId).distinct().toArray(Long[]::new);
         sysAppDataRuleMapper.deleteByIds(StringUtils.join(id, ","));
         cacheService.refreshDataConfigCache(configs);
-
     }
 
 }

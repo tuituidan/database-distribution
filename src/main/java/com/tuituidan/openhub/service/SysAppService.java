@@ -66,6 +66,7 @@ public class SysAppService implements ApplicationRunner {
         if (id == null) {
             sysAppMapper.insertSelective(saveItem);
             sysAppCache.put(saveItem.getId(), saveItem);
+            cacheService.refreshCacheByAppId(saveItem.getId());
             return;
         }
         saveItem.setId(id);
