@@ -53,7 +53,7 @@ public class DatabaseConfigService {
             saveItem.setId(id);
             sysDatabaseConfigMapper.updateByPrimaryKeySelective(saveItem);
         }
-        cacheService.refreshDataConfigCache(id);
+        cacheService.refreshDataConfigCache(saveItem.getId());
     }
 
     private void checkUnique(Long id, SysDatabaseConfigParam param) {
