@@ -26,6 +26,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_app_data_rule", schema = "database_distribution")
 public class SysAppDataRule implements IEntity<SysAppDataRule, Long> {
 
+    private static final long serialVersionUID = -17095764960230242L;
+
     @Id
     private Long id;
 

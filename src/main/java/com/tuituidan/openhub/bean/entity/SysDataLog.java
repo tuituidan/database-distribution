@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_data_log", schema = "database_distribution")
 public class SysDataLog implements IEntity<SysDataLog, Long> {
 
+    private static final long serialVersionUID = 2329949633755951332L;
+
     @Id
     private Long id;
 

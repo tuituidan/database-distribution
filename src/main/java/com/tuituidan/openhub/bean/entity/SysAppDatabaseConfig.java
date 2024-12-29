@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_app_database_config", schema = "database_distribution")
 public class SysAppDatabaseConfig implements IEntity<SysAppDatabaseConfig, Long> {
 
+    private static final long serialVersionUID = 6391044334210383051L;
+
     @Id
     private Long id;
 

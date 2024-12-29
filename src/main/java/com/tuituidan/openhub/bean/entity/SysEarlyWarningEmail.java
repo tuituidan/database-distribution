@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_early_warning_email", schema = "database_distribution")
 public class SysEarlyWarningEmail implements IEntity<SysEarlyWarningEmail, Long> {
 
+    private static final long serialVersionUID = -4557224656309498343L;
+
     @Id
     private Long id;
 

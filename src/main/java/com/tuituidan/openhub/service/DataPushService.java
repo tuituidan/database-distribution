@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tuituidan.openhub.bean.dto.PostTableData;
+import com.tuituidan.openhub.bean.dto.SysAppHeaderParam;
 import com.tuituidan.openhub.bean.entity.SysDataLog;
 import com.tuituidan.openhub.bean.entity.SysPushLog;
 import com.tuituidan.openhub.bean.vo.DataConfigView;
@@ -15,6 +16,7 @@ import com.tuituidan.openhub.mapper.SysDataLogMapper;
 import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.tresdin.mybatis.util.SnowFlake;
 import com.tuituidan.tresdin.util.ExpParserUtils;
+import com.tuituidan.tresdin.util.StringExtUtils;
 import com.tuituidan.tresdin.util.thread.CompletableUtils;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -27,14 +29,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -154,18 +159,33 @@ public class DataPushService {
     }
 
     private void pushToApp(SysPushLog pushLog, SysAppView sysApp, PostTableData postData) {
+        BodyBuilder bodyBuilder = RequestEntity.post(sysApp.getUrl())
+                .acceptCharset(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON);
+        addPushRequestHeader(bodyBuilder, sysApp);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(RequestEntity.post(sysApp.getUrl())
-                    .header("AppKey", sysApp.getAppKey())
-                    .header("Authorization", getToken(sysApp))
-                    .acceptCharset(StandardCharsets.UTF_8)
-                    .contentType(MediaType.APPLICATION_JSON).body(postData), String.class);
+            ResponseEntity<String> response = restTemplate.exchange(bodyBuilder.body(postData), String.class);
             pushLog.setResponse(StringUtils.truncate(StringUtils.defaultString(response.getBody(),
                     "无数据返回"), 4000));
             pushLog.setStatus(analysePushStatus(response, sysApp));
         } catch (Exception ex) {
             pushLog.setResponse(StringUtils.truncate(ExceptionUtils.getStackTrace(ex), 4000));
             pushLog.setStatus(PushStatusEnum.FAIL.getCode());
+        }
+    }
+
+    private void addPushRequestHeader(BodyBuilder bodyBuilder, SysAppView sysApp) {
+        if (CollectionUtils.isEmpty(sysApp.getHeaders())) {
+            return;
+        }
+        for (SysAppHeaderParam header : sysApp.getHeaders()) {
+            if ("key-value".equals(header.getType())) {
+                bodyBuilder.header(header.getKey(), header.getValue());
+            } else if ("basic".equals(header.getType())) {
+                bodyBuilder.header("Authorization", buildBasicToken(header));
+            } else if ("bearer".equals(header.getType())) {
+                bodyBuilder.header("Authorization", buildBearerToken(sysApp));
+            }
         }
     }
 
@@ -182,8 +202,14 @@ public class DataPushService {
                 ? PushStatusEnum.SUCCESS.getCode() : PushStatusEnum.FAIL.getCode();
     }
 
-    private String getToken(SysAppView sysApp) {
-        return appTokenCache.get(sysApp.getAppKey(), key -> Jwts.builder().setSubject(key)
+    private String buildBasicToken(SysAppHeaderParam header) {
+        return StringExtUtils.format("Basic {}",
+                Base64Utils.encodeToUrlSafeString(StringExtUtils.format("{}:{}",
+                        header.getKey(), header.getValue()).getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private String buildBearerToken(SysAppView sysApp) {
+        return "Bearer " + appTokenCache.get(sysApp.getAppKey(), key -> Jwts.builder().setSubject(key)
                 .signWith(SignatureAlgorithm.HS512, sysApp.getAppSecret())
                 .setExpiration(DateUtils.addMinutes(new Date(), 30))
                 .compact());

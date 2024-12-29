@@ -1,7 +1,7 @@
 <template>
   <el-dialog :title="title" :visible.sync="show"
              :close-on-click-modal="false"
-             width="660px" append-to-body>
+             width="800px" append-to-body>
     <el-form ref="form" :model="form" :rules="rules" label-width="140px" @submit.native.prevent>
       <el-form-item label="应用名称" prop="appName">
         <el-input v-model="form.appName" placeholder="请输入应用名称" maxlength="100" v-trim/>
@@ -25,10 +25,14 @@
         </span>
         <el-input v-model="form.url" placeholder="请输入推送地址" maxlength="400" v-trim/>
       </el-form-item>
+      <el-form-item label="请求头">
+        <app-header v-model="form.headers" :form-data="form"></app-header>
+      </el-form-item>
       <el-form-item prop="resultExp">
         <span slot="label">
           结果解析表达式
-          <el-tooltip content='将返回的json数据通过此SpringEL表达式来解析，用于判断成功还是失败，如返回成功结果是{code:1,msg:"xxx"}，填写【#code==1】，当code为其他值时结果判定为失败，方便后续重推失败数据，如果不填写则以http请求状态来判断成功失败'>
+          <el-tooltip
+            content='将返回的json数据通过此SpringEL表达式来解析，用于判断成功还是失败，如返回成功结果是{code:1,msg:"xxx"}，填写【#code==1】，当code为其他值时结果判定为失败，方便后续重推失败数据，如果不填写则以http请求状态来判断成功失败'>
           <i class="el-icon-question"></i>
           </el-tooltip>
         </span>
@@ -47,6 +51,9 @@ import {uuid} from "@/utils";
 
 export default {
   name: "sys-app-edit",
+  components: {
+    'app-header': () => import('./app-header'),
+  },
   data() {
     return {
       // 弹出层标题
@@ -59,6 +66,13 @@ export default {
         appSecret: '',
         url: '',
         resultExp: '',
+        headers: [
+          {
+            type: '',
+            key: '',
+            value: '',
+          }
+        ],
       },
       rules: {
         appKey: [
@@ -80,6 +94,9 @@ export default {
     open(row) {
       this.resetForm();
       if (row) {
+        if (!row.headers || !row.headers.length) {
+          row.headers = [{type: '', key: '', value: ''}];
+        }
         this.form = {...row};
         this.title = '编辑应用';
       } else {
@@ -89,7 +106,7 @@ export default {
       }
       this.show = true;
     },
-    generateKey(key){
+    generateKey(key) {
       this.form[key] = uuid('')
     },
     resetForm() {
@@ -99,6 +116,13 @@ export default {
         appSecret: '',
         url: '',
         resultExp: '',
+        headers: [
+          {
+            type: '',
+            key: '',
+            value: '',
+          }
+        ],
       };
       this.$nextTick(() => {
         this.$refs.form.clearValidate();
@@ -107,6 +131,12 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          for (let i = 0; i < this.form.headers.length; i++) {
+            const head = this.form.headers[i];
+            if (!(head.type && head.key && head.value)) {
+              this.form.headers.splice(i, 1)
+            }
+          }
           this.$http.save('/api/v1/sys_app', {...this.form})
             .then(() => {
               this.$modal.msgSuccess('保存成功');

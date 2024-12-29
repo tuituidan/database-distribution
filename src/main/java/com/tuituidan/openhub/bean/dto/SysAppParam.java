@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.bean.dto;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,5 +24,7 @@ public class SysAppParam {
     private String url;
 
     private String resultExp;
+
+    private List<SysAppHeaderParam> headers;
 
 }

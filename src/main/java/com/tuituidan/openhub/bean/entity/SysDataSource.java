@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_datasource", schema = "database_distribution")
 public class SysDataSource implements IEntity<SysDataSource, Long> {
 
+    private static final long serialVersionUID = -1813963739874268092L;
+
     @Id
     private Long id;
 

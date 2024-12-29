@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <el-row :gutter="10">
-      <el-col :span="10">
+      <el-col :span="8">
         <sys-app @rowChange="rowChange"></sys-app>
       </el-col>
-      <el-col :span="7">
+      <el-col :span="8">
         <app-database-config ref="refAppDatabaseConfig" @node-change="nodeChange"></app-database-config>
       </el-col>
-      <el-col :span="7">
+      <el-col :span="8">
         <sys-app-data-rule ref="refAppDataRule"></sys-app-data-rule>
       </el-col>
     </el-row>

@@ -26,6 +26,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_push_log", schema = "database_distribution")
 public class SysPushLog implements IEntity<SysPushLog, Long> {
 
+    private static final long serialVersionUID = 8201212624114687524L;
+
     @Id
     private Long id;
 

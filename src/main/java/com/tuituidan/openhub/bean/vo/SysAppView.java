@@ -1,5 +1,6 @@
 package com.tuituidan.openhub.bean.vo;
 
+import com.tuituidan.openhub.bean.dto.SysAppHeaderParam;
 import com.tuituidan.openhub.bean.entity.SysAppDataRule;
 import java.util.List;
 import lombok.Getter;
@@ -30,5 +31,7 @@ public class SysAppView {
 
     private String resultExp;
 
+    private List<SysAppHeaderParam> headers;
+    
     private List<SysAppDataRule> dataRules;
 }

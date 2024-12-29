@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `sys_app` (
     `app_name` varchar(200) NOT NULL COMMENT '应用名称',
     `url` varchar(200) DEFAULT NULL COMMENT '地址',
     `result_exp` varchar(400) DEFAULT NULL COMMENT '结果解析表达式',
+    `headers` varchar(1000) DEFAULT NULL COMMENT '请求头',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE
