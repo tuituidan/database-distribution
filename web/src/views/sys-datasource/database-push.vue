@@ -16,7 +16,7 @@
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="submitForm">推 送</el-button>
+      <el-button type="primary" :loading="loading" @click="submitForm">推 送</el-button>
       <el-button @click="cancel">取 消</el-button>
     </div>
   </el-dialog>
@@ -29,6 +29,7 @@ export default {
     return {
       // 是否显示弹出层
       show: false,
+      loading: false,
       incrementType: 'date',
       form: {
         incrementValue: '',
@@ -56,10 +57,14 @@ export default {
     submitForm() {
       this.$refs.form.validate(valid => {
         if (valid) {
+          this.loading = true;
           this.$http.post('/api/v1/database_config/handler', {...this.form})
             .then(() => {
               this.$modal.msgSuccess('推送成功');
               this.show = false;
+            })
+            .finally(() => {
+              this.loading = false;
             })
         }
       });
