@@ -8,6 +8,7 @@ import java.util.Properties;
 import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.mail.SimpleMailMessage;
@@ -85,6 +86,10 @@ public class EarlyWarningEmailService implements ApplicationRunner {
     }
 
     private void initConfig(SysEarlyWarningEmail config) {
+        if (StringUtils.isBlank(config.getHost())) {
+            this.emailConfig = null;
+            return;
+        }
         this.emailConfig = config;
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(config.getHost());

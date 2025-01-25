@@ -3,14 +3,24 @@
     <el-card shadow="never">
       <div slot="header" class="card-header">
         <span>预警邮箱配置</span>
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-document"
-          size="mini"
-          @click="saveHandler"
-        >保存
-        </el-button>
+        <div>
+          <el-button
+            type="default"
+            plain
+            icon="el-icon-delete"
+            size="mini"
+            @click="clearHandler"
+          >清空
+          </el-button>
+          <el-button
+            type="primary"
+            plain
+            icon="el-icon-document"
+            size="mini"
+            @click="saveHandler('保存成功')"
+          >保存
+          </el-button>
+        </div>
       </div>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px" @submit.native.prevent>
         <el-form-item label="邮箱服务地址" prop="host">
@@ -51,6 +61,7 @@ export default {
       // 遮罩层
       loading: false,
       form: {
+        id: null,
         host: '',
         protocol: '',
         port: '',
@@ -82,17 +93,29 @@ export default {
       this.loading = true;
       this.$http.get('/api/v1/email')
         .then(res => {
+          if (!res.receivers) {
+            res.receivers = [];
+          }
           this.form = res;
         })
         .finally(() => {
           this.loading = false;
         });
     },
-    saveHandler() {
+    clearHandler() {
+      this.form.host = '';
+      this.form.protocol = '';
+      this.form.port = '';
+      this.form.username = '';
+      this.form.password = '';
+      this.form.receivers = [];
+      this.saveHandler('清理成功');
+    },
+    saveHandler(tip) {
       this.loading = true;
       this.$http.post(`/api/v1/email`, this.form)
         .then(() => {
-          this.$modal.msgSuccess('保存成功');
+          this.$modal.msgSuccess(tip || '保存成功');
           this.loadConfig();
         })
         .finally(() => {
