@@ -3,7 +3,7 @@
              :close-on-click-modal="false"
              width="480px" append-to-body>
     <el-form ref="form" :model="form" :rules="rules" label-width="110px" @submit.native.prevent>
-      <el-form-item v-if="incrementType ==='date'" label="起始时间" prop="incrementValue">
+      <el-form-item v-if="incrementType === 'date'" label="起始时间" prop="incrementValue">
         <el-date-picker
           v-model="form.incrementValue"
           type="datetime"
@@ -47,8 +47,8 @@ export default {
       this.form = {
         ids: rows.map(item => item.id),
         datasourceId: source.id,
-        incrementValue: source.lastStopTime,
       };
+      this.form.incrementValue = this.incrementType === 'date' ? source.lastStopTime : '';
       this.$nextTick(() => {
         this.$refs.form.clearValidate();
       })

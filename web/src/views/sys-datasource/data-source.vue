@@ -24,6 +24,32 @@
       @row-click="rowClickHandler"
       @current-change="currentRowChange"
       :data="dataList">
+      <el-table-column type="expand" label="展开">
+        <template slot-scope="props">
+          <div class="table-expand">
+            <el-form :model="props.row" label-width="120px">
+              <el-form-item label="数据源名">
+                <span v-text="props.row.name"></span>
+              </el-form-item>
+              <el-form-item label="数据库地址">
+                <span v-text="props.row.host"></span>
+              </el-form-item>
+              <el-form-item label="数据库端口">
+                <span v-text="props.row.port"></span>
+              </el-form-item>
+              <el-form-item label="数据库用户名">
+                <span v-text="props.row.username"></span>
+              </el-form-item>
+              <el-form-item label="服务ID">
+                <span v-text="props.row.serverId"></span>
+              </el-form-item>
+              <el-form-item label="时区">
+                <span v-text="props.row.timeZone"></span>
+              </el-form-item>
+            </el-form>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="选择" width="50" align="center">
         <template slot-scope="scope">
           <el-radio v-model="selectRow" :label="scope.row.id"><i></i></el-radio>
@@ -33,7 +59,6 @@
       <el-table-column label="地址" align="center" prop="host" :show-overflow-tooltip="true"/>
       <el-table-column label="端口" align="center" prop="port" :show-overflow-tooltip="true"/>
       <el-table-column label="用户名" align="center" prop="username" :show-overflow-tooltip="true"/>
-      <el-table-column label="时区" align="center" prop="timeZone" :show-overflow-tooltip="true"/>
       <el-table-column label="状态" align="center">
         <template slot-scope="scope">
           <el-switch
@@ -149,6 +174,21 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.table-expand {
+  overflow-x: auto;
+  .el-form {
+    ::v-deep label {
+      color: #99a9bf;
+    }
 
+    .el-form-item {
+      margin-bottom: 0;
+      .header-item {
+        white-space: nowrap;
+        padding-right: 10px;
+      }
+    }
+  }
+}
 </style>
