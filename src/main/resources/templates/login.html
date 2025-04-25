@@ -1,58 +1,276 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录</title>
-    <link rel="stylesheet" th:href="@{/assets/css/login.css}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 440px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #718096;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .custom-checkbox.checked::after {
+            content: "✓";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .login-error-wrapper {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .login-error {
+            height: 18px;
+            margin: 5px 0 0 0;
+            color: #d95c5c;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<header class="header">
-    <div class="logo">
-        <div class="logo-text">数据分发服务</div>
+<div class="login-container">
+    <div class="login-header">
+        <h1>Windows服务管理</h1>
+        <p>请输入您的账号密码登录系统</p>
     </div>
-</header>
-<div class="login-wrapper">
-    <div class="login-content">
-        <div class="login-header">
-            <h1 class="login-header-h2">登录</h1>
-        </div>
-        <div class="login-form-wrapper">
-            <form onclick="this.disabled=false" onsubmit="return handleSubmit()"
-                  method="POST"
-                  action="/login">
-                <div class="username-wrapper">
-                    <input onfocus="inputFocus()"
-                           class="username username-input-default"
-                           type="text"
-                           name="username"
-                           id="username"
-                           value="admin"
-                           placeholder="请输入用户名">
-                </div>
 
-                <div class="password-wrapper">
-                    <input onfocus="inputFocus()"
-                           class="password password-input-default"
-                           type="password"
-                           name="password"
-                           id="password"
-                           value="123456"
-                           placeholder="请输入密码">
-                </div>
-                <div class="submit-btn-wrapper">
-                    <img class="btn-loading" src="./assets/images/loading.svg" alt="">
-                    <button type="submit" onclick="handleSubmit()" class="submit-btn">登录</button>
-                </div>
-                <div class="login-error-wrapper" th:if="${param.error}">
-                    <p class="login-error opacity1" th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}"></p>
-                </div>
-            </form>
+    <form id="loginForm" onclick="this.disabled=false" onsubmit="return handleSubmit()"
+          method="POST"
+          action="/login">
+        <div class="form-group">
+            <label class="form-label">用户名</label>
+            <input type="text"
+                   class="form-input"
+                   id="username"
+                   name="username"
+                   placeholder="请输入用户名"
+                   required/>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label class="form-label">密码</label>
+            <input type="password"
+                   class="form-input"
+                   id="password"
+                   name="password"
+                   placeholder="请输入密码"
+                   required/>
+        </div>
+
+        <div class="options">
+            <div class="checkbox-group">
+                <div class="custom-checkbox"
+                     id="rememberCheckbox"
+                     onclick="toggleCheckbox(this)"></div>
+                <span>记住密码</span>
+            </div>
+
+            <div class="checkbox-group">
+                <div class="custom-checkbox"
+                     id="autoLoginCheckbox"
+                     onclick="toggleCheckbox(this)"></div>
+                <span>自动登录</span>
+            </div>
+        </div>
+
+        <button type="submit" class="login-btn" onclick="handleSubmit()" id="loginBtn">立即登录</button>
+
+        <div class="login-error-wrapper" th:if="${param.error}">
+            <p class="login-error" th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}"></p>
+        </div>
+    </form>
 </div>
-</body>
-<script type="application/javascript" th:src="@{/assets/js/login.js}">
+
+<script type="text/javascript">
+    const param = /*[[${param}]]*/ {};
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const autoLoginCheckbox = document.getElementById('autoLoginCheckbox');
+    const rememberCheckbox = document.getElementById('rememberCheckbox');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // 自定义复选框逻辑
+    function toggleCheckbox(element) {
+        element.classList.toggle('checked');
+    }
+
+    // 本地存储操作
+    const STORAGE_KEY = 'login_info';
+
+    function saveLoginInfo(username, password, remember, autoLogin) {
+        if (remember || autoLogin) {
+            const data = {
+                username,
+                password,
+                remember,
+                autoLogin
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } else {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }
+
+    function loadLoginInfo() {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (data) {
+            if(data.autoLogin || data.remember){
+                usernameInput.value = data.username || '';
+                passwordInput.value = data.password || '';
+                rememberCheckbox.classList.add('checked');
+                if (data.autoLogin) {
+                    autoLoginCheckbox.classList.add('checked');
+                    if (!param.error) {
+                        // 自动触发登录
+                        setTimeout(() => loginBtn.click(), 500);
+                    }
+                }
+            }
+        }
+    }
+
+    function handleSubmit(e) {
+        if (usernameInput.value === '') {
+            return false;
+        }
+        if (passwordInput.value === '') {
+            return false
+        }
+        loginBtn.classList.add('loading');
+        loginBtn.innerHTML = '登录中...';
+        // 获取表单数据
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        const remember = rememberCheckbox.classList.contains('checked');
+        const autoLogin = autoLoginCheckbox.classList.contains('checked');
+        // 保存登录信息
+        saveLoginInfo(username, password, remember, autoLogin);
+        return true;
+    }
+
+    // 页面加载时检查保存的登录信息
+    window.addEventListener('DOMContentLoaded', loadLoginInfo);
 </script>
+</body>
 </html>
-
-
