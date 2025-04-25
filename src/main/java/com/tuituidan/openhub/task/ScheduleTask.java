@@ -8,11 +8,9 @@ import com.tuituidan.openhub.mapper.SysPushLogMapper;
 import com.tuituidan.openhub.service.DataLogService;
 import com.tuituidan.openhub.service.EarlyWarningEmailService;
 import com.tuituidan.tresdin.mybatis.QueryHelper;
-import com.tuituidan.tresdin.page.PageData;
 import com.tuituidan.tresdin.schedule.task.annotation.TaskName;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import java.time.LocalDate;
-import java.util.List;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -58,15 +56,13 @@ public class ScheduleTask {
             return;
         }
         // 分页查出来重推，避免数据量过大
-        int limit = 100;
-        int pageCount = QueryHelper.calcPageCount(count, limit);
-        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
-            PageData<List<SysPushLog>> pageData = QueryHelper.queryPage(pageIndex * limit, limit,
-                    () -> sysPushLogMapper.selectByExample(pushLogWeekend));
-            for (SysPushLog pushLog : pageData.getData()) {
-                dataLogService.pushLog(pushLog);
-            }
-        }
+        QueryHelper.iteratePageList(100,
+                () -> sysPushLogMapper.selectByExample(pushLogWeekend),
+                pageData -> {
+                    for (SysPushLog pushLog : pageData.getData()) {
+                        dataLogService.pushLog(pushLog);
+                    }
+                });
     }
 
     /**
