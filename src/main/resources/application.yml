@@ -14,7 +14,7 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   security:
-    enabled: false
+    enabled: true
     user:
       name: ENC#AeYXP81qEjiOJOYh1eIJE/cz52owOCVqubBkLdBFVZutGJBl8+YPjfgfI9gHtvBy
       password: ENC#qC2k83W3O6otgxFfo3/n0N8bMgOXuZkDoLiCKcnmLnKVzRRuJlj95aZu7yARSYiJ

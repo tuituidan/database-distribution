@@ -34,6 +34,10 @@ service.interceptors.response.use(res => {
     return res.data;
   },
   err => {
+    if(err.response && err.response.status === 401){
+      window.location.href = process.env.VUE_APP_PROXY_URL + '/login?returnUrl='+encodeURIComponent(location.href);
+      return;
+    }
     let {message} = err;
     if (message === "Network Error") {
       Message.error('后端接口连接异常');
