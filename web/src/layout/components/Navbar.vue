@@ -1,23 +1,22 @@
 <template>
   <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-<!--    <div class="right-menu">-->
-<!--      <template>-->
-<!--        <screenfull id="screenfull" class="right-menu-item hover-effect" />-->
-<!--      </template>-->
-<!--    </div>-->
+    <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container"
+               @toggleClick="toggleSideBar"/>
+    <div class="right-menu">
+      <div class="right-menu-item">
+        <el-link icon="el-icon-switch-button" @click="logoutHandler">退出</el-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import {mapGetters} from 'vuex'
 import Hamburger from '@/components/Hamburger'
-import Screenfull from '@/components/Screenfull'
 
 export default {
   components: {
     Hamburger,
-    Screenfull,
   },
   computed: {
     ...mapGetters([
@@ -29,6 +28,18 @@ export default {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
+    logoutHandler() {
+      this.$http.post('/logout')
+        .then(() => {
+          const STORAGE_KEY = 'login_info';
+          const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (data) {
+            data.autoLogin = false;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            location.href = '/';
+          }
+        })
+    },
   }
 }
 </script>
@@ -39,7 +50,7 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
 
   .hamburger-container {
     line-height: 46px;
@@ -47,7 +58,7 @@ export default {
     float: left;
     cursor: pointer;
     transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover {
       background: rgba(0, 0, 0, .025)
