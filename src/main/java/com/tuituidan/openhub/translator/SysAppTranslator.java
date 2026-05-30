@@ -35,7 +35,7 @@ public class SysAppTranslator implements ITranslator<SysAppAnno> {
     }
 
     @Override
-    public String translate(TranslationParameter translationParameter) {
+    public Object translate(TranslationParameter translationParameter) {
         Long value = (Long) translationParameter.getFieldValue();
         if (Objects.isNull(value)) {
             return StringUtils.EMPTY;
