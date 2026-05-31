@@ -47,7 +47,7 @@ export const constantRoutes = [
         path: '',
         component: () => import('@/views/index'),
         name: 'Index',
-        meta: {title: '首页', icon: 'dashboard', affix: true}
+        meta: { title: '首页', icon: 'dashboard', affix: true }
       },
       {
         path: '/log/data',
@@ -84,8 +84,8 @@ export const constantRoutes = [
 ]
 
 // 防止连续点击多次路由报错
-let routerPush = Router.prototype.push;
-let routerReplace = Router.prototype.replace;
+let routerPush = Router.prototype.push
+let routerReplace = Router.prototype.replace
 // push
 Router.prototype.push = function push(location) {
   return routerPush.call(this, location).catch(err => err)
@@ -97,6 +97,6 @@ Router.prototype.replace = function push(location) {
 
 export default new Router({
   mode: 'hash',
-  scrollBehavior: () => ({y: 0}),
+  scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })

@@ -3,7 +3,7 @@
  * 表格时间格式化
  */
 export function formatDate(cellValue) {
-  if (cellValue == null || cellValue == "") return "";
+  if (cellValue == null || cellValue == "") return ""
   var date = new Date(cellValue)
   var year = date.getFullYear()
   var month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
@@ -398,12 +398,6 @@ export function isNumberStr(str) {
   return /^[+-]?(0|([1-9]\d*))(\.\d+)?$/g.test(str)
 }
 
-
-/**
- * 通用js方法封装处理
- * Copyright (c) 2019 ruoyi
- */
-
 // 日期格式化
 export function parseTime(time, pattern) {
   if (arguments.length === 0 || !time) {
@@ -417,7 +411,7 @@ export function parseTime(time, pattern) {
     if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
       time = parseInt(time)
     } else if (typeof time === 'string') {
-      time = time.replace(new RegExp(/-/gm), '/').replace('T', ' ').replace(new RegExp(/\.[\d]{3}/gm), '');
+      time = time.replace(new RegExp(/-/gm), '/').replace('T', ' ').replace(new RegExp(/\.[\d]{3}/gm), '')
     }
     if ((typeof time === 'number') && (time.toString().length === 10)) {
       time = time * 1000
@@ -474,4 +468,11 @@ export function tansParams(params) {
 // 验证是否为blob格式
 export function blobValidate(data) {
   return data.type !== 'application/json'
+}
+
+// 表单重置
+export function resetForm(refName) {
+  if (this.$refs[refName]) {
+    this.$refs[refName].resetFields()
+  }
 }

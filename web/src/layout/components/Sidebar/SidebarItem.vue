@@ -26,6 +26,7 @@
 
 <script>
 import path from 'path'
+import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
 import FixiOSBug from './FixiOSBug'
@@ -56,16 +57,15 @@ export default {
   methods: {
     hasOneShowingChild(children = [], parent) {
       if (!children) {
-        children = [];
+        children = []
       }
       const showingChildren = children.filter(item => {
         if (item.hidden) {
           return false
-        } else {
-          // Temp set(will be used if only has one showing child)
-          this.onlyOneChild = item
-          return true
         }
+        // Temp set(will be used if only has one showing child)
+        this.onlyOneChild = item
+        return true
       })
 
       // When there is only one child router, the child router is displayed by default
@@ -82,8 +82,14 @@ export default {
       return false
     },
     resolvePath(routePath, routeQuery) {
+      if (isExternal(routePath)) {
+        return routePath
+      }
+      if (isExternal(this.basePath)) {
+        return this.basePath
+      }
       if (routeQuery) {
-        let query = JSON.parse(routeQuery);
+        let query = JSON.parse(routeQuery)
         return { path: path.resolve(this.basePath, routePath), query: query }
       }
       return path.resolve(this.basePath, routePath)

@@ -15,17 +15,15 @@ import directive from '@/plugins/directive'
 import './assets/icons' // icon
 
 // 分页组件
-import Pagination from "@/components/Pagination";
-// 头部标签组件
-import VueMeta from 'vue-meta'
-
+import Pagination from "@/components/Pagination"
 
 // 全局组件挂载
+
 Vue.component('Pagination', Pagination)
 
-Vue.use(plugins)
-Vue.use(VueMeta)
 Vue.use(directive)
+Vue.use(plugins)
+
 
 /**
  * If you don't want to use mock-server

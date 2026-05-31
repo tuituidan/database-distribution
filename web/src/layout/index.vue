@@ -1,17 +1,20 @@
 <template>
-  <div :class="classObj" class="app-wrapper" :style="{'--current-color': theme}">
+  <div :class="classObj" class="app-wrapper" :style="{'--current-color': theme, '--current-color-light': theme + '1a', '--current-color-dark-bg': theme + '33'}">
+    <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside"/>
     <sidebar v-if="!sidebar.hide" class="sidebar-container"/>
-    <div :class="{sidebarHide:sidebar.hide}" class="main-container">
-      <div class="fixed-header">
-        <navbar/>
+    <div :class="{hasTagsView:needTagsView,sidebarHide:sidebar.hide}" class="main-container">
+      <div :class="{'fixed-header':fixedHeader}">
+        <navbar @setLayout="setLayout"/>
+        <tags-view v-if="needTagsView"/>
       </div>
       <app-main/>
+      <settings ref="settingRef"/>
     </div>
   </div>
 </template>
 
 <script>
-import { AppMain, Navbar, Sidebar } from './components'
+import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import { mapState } from 'vuex'
 import variables from '@/assets/styles/variables.scss'
@@ -21,7 +24,9 @@ export default {
   components: {
     AppMain,
     Navbar,
+    Settings,
     Sidebar,
+    TagsView
   },
   mixins: [ResizeMixin],
   computed: {
@@ -30,21 +35,27 @@ export default {
       sideTheme: state => state.settings.sideTheme,
       sidebar: state => state.app.sidebar,
       device: state => state.app.device,
+      needTagsView: state => state.settings.tagsView,
+      fixedHeader: state => state.settings.fixedHeader
     }),
     classObj() {
       return {
         hideSidebar: !this.sidebar.opened,
         openSidebar: this.sidebar.opened,
         withoutAnimation: this.sidebar.withoutAnimation,
+        mobile: this.device === 'mobile'
       }
     },
     variables() {
-      return variables;
+      return variables
     }
   },
   methods: {
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
+    },
+    setLayout() {
+      this.$refs.settingRef.openSetting()
     }
   }
 }
@@ -64,6 +75,11 @@ export default {
       position: fixed;
       top: 0;
     }
+  }
+
+  .main-container:has(.fixed-header) {
+    height: 100vh;
+    overflow: hidden;
   }
 
   .drawer-bg {
