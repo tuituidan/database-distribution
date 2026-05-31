@@ -52,18 +52,20 @@
         :data="dataList">
         <el-table-column type="selection" width="50" align="center"/>
         <el-table-column label="序号" type="index" width="50" align="center"/>
-        <el-table-column type="expand" label="展开">
+        <el-table-column type="expand" label="展开日志" width="80">
           <template slot-scope="props">
             <div style="padding: 10px 20px">
-              <el-table :data="props.row.children" border :header-cell-style="{backgroundColor: 'white'}">
+              <el-table :data="props.row.children" border :max-height="360" :header-cell-style="{backgroundColor: 'white'}">
+                <el-table-column label="序号" type="index" width="50" align="center"/>
                 <el-table-column align="center" property="startTime" label="执行时间"
                                  show-overflow-tooltip width="160"></el-table-column>
                 <el-table-column align="center" property="costTimeDesc" label="执行耗时"
                                  show-overflow-tooltip width="160"></el-table-column>
                 <el-table-column label="执行状态" align="center" prop="success" width="100">
                   <template slot-scope="scope">
-                    <el-tag type="success" size="small" v-if="scope.row.success">成功</el-tag>
-                    <el-tag size="small" type="danger" v-else>失败</el-tag>
+                    <el-tag size="small" type="success" v-if="scope.row.success===true">成功</el-tag>
+                    <el-tag size="small" type="danger" v-else-if="scope.row.success===false">失败</el-tag>
+                    <el-tag size="small" type="warning" v-else>执行中</el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column property="msg" label="执行结果" show-overflow-tooltip></el-table-column>

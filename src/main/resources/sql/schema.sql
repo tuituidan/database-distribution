@@ -104,3 +104,24 @@ CREATE TABLE IF NOT EXISTS `sys_early_warning_email` (
     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='预警邮箱配置';
+
+CREATE TABLE IF NOT EXISTS `sys_schedule_task` (
+    `id` bigint(20) NOT NULL COMMENT '主键',
+    `task_path` varchar(200) NOT NULL COMMENT '定时任务包路径',
+    `task_status` varchar(100) DEFAULT NULL COMMENT '定时任务状态',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='定时任务';
+
+CREATE TABLE IF NOT EXISTS `sys_schedule_task_log` (
+    `id` bigint(20) NOT NULL COMMENT '主键',
+    `task_id` varchar(100) NOT NULL COMMENT '定时任务ID',
+    `start_time_stamp` bigint(20) NOT NULL COMMENT '开始时间戳',
+    `end_time_stamp` bigint(20) NULL COMMENT '开始时间戳',
+    `success` bit(1) NULL COMMENT '是否成功',
+    `msg` varchar(500) NULL COMMENT '执行结果',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='定时任务日志';
