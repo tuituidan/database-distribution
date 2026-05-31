@@ -9,6 +9,7 @@ import com.tuituidan.openhub.service.DataLogService;
 import com.tuituidan.openhub.service.EarlyWarningEmailService;
 import com.tuituidan.tresdin.mybatis.QueryHelper;
 import com.tuituidan.tresdin.schedule.task.annotation.TaskName;
+import com.tuituidan.tresdin.schedule.task.util.ScheduleLogUtils;
 import com.tuituidan.tresdin.util.StringExtUtils;
 import java.time.LocalDate;
 import javax.annotation.Resource;
@@ -63,6 +64,7 @@ public class ScheduleTask {
                         dataLogService.pushLog(pushLog);
                     }
                 });
+        ScheduleLogUtils.setSuccessMsg("重新推送【" + count + "】条数据");
     }
 
     /**
@@ -82,6 +84,7 @@ public class ScheduleTask {
             message.setText(StringExtUtils.format("目前存在{}个推送数据，推送超过五次仍然失败", count));
             earlyWarningEmailService.send(message);
         }
+        ScheduleLogUtils.setSuccessMsg("本次检查存在【" + count + "】个推送失败超5次的数据");
     }
 
     /**
@@ -92,11 +95,12 @@ public class ScheduleTask {
     public void clearOldLog() {
         Weekend<SysPushLog> pushLogWeekend = Weekend.of(SysPushLog.class);
         pushLogWeekend.weekendCriteria().andLessThan(SysPushLog::getPushTime, LocalDate.now().plusMonths(-2));
-        sysPushLogMapper.deleteByExample(pushLogWeekend);
+        int pushRecord = sysPushLogMapper.deleteByExample(pushLogWeekend);
 
         Weekend<SysDataLog> dataLogWeekend = Weekend.of(SysDataLog.class);
         dataLogWeekend.weekendCriteria().andLessThan(SysDataLog::getCreateTime, LocalDate.now().plusMonths(-2));
-        sysDataLogMapper.deleteByExample(dataLogWeekend);
+        int dataRecord = sysDataLogMapper.deleteByExample(dataLogWeekend);
+        ScheduleLogUtils.setSuccessMsg("清理【" + pushRecord + "】条推送数据，【" + dataRecord + "】条数据日志");
     }
 
 }

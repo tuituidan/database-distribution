@@ -1,9 +1,9 @@
 <template>
   <div>
-    <el-row type="flex" justify="space-between">
-      <div></div>
-      <el-row class="mb8 mt5">
-        <el-col :span="1.5">
+    <el-card shadow="never">
+      <div slot="header" class="card-header">
+        <span>定时任务管理</span>
+        <div>
           <el-button
             type="success"
             plain
@@ -37,34 +37,56 @@
             size="small"
             icon="el-icon-coffee-cup"
             v-btn-multiple="selections"
-            @click="clickHandler('handler')"
+            @click="clickHandler('execute')"
           >执行
           </el-button>
-        </el-col>
-      </el-row>
-    </el-row>
-    <el-table
-      stripe
-      border
-      ref="dataTable"
-      v-loading="loading"
-      @selection-change="selections = $refs.dataTable.selection"
-      :data="dataList">
-      <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column label="序号" type="index" width="50" align="center"/>
-      <el-table-column label="任务名称" align="center" prop="name" :show-overflow-tooltip="true"/>
-      <el-table-column label="cron表达式" align="center" prop="cron" :show-overflow-tooltip="true" width="130"/>
-      <el-table-column label="cron描述" align="center" prop="desc" :show-overflow-tooltip="true"/>
-      <el-table-column label="状态" align="center" prop="status" show-overflow-tooltip width="80">
-        <template slot-scope="scope">
-          <div>
-            <el-tag v-if="scope.row.status === 'stop'" type="danger" effect="plain">已停止</el-tag>
-            <el-tag v-else type="success" effect="plain">已启动</el-tag>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="下次执行时间" align="center" prop="nextRunTime" :show-overflow-tooltip="true" width="160"/>
-    </el-table>
+        </div>
+      </div>
+      <el-table
+        stripe
+        border
+        ref="dataTable"
+        v-loading="loading"
+        @selection-change="selections = $refs.dataTable.selection"
+        @expand-change="expandChange"
+        :data="dataList">
+        <el-table-column type="selection" width="50" align="center"/>
+        <el-table-column label="序号" type="index" width="50" align="center"/>
+        <el-table-column type="expand" label="展开">
+          <template slot-scope="props">
+            <div style="padding: 10px 20px">
+              <el-table :data="props.row.children" border :header-cell-style="{backgroundColor: 'white'}">
+                <el-table-column align="center" property="startTime" label="执行时间"
+                                 show-overflow-tooltip width="160"></el-table-column>
+                <el-table-column align="center" property="costTimeDesc" label="执行耗时"
+                                 show-overflow-tooltip width="160"></el-table-column>
+                <el-table-column label="执行状态" align="center" prop="success" width="100">
+                  <template slot-scope="scope">
+                    <el-tag type="success" size="small" v-if="scope.row.success">成功</el-tag>
+                    <el-tag size="small" type="danger" v-else>失败</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column property="msg" label="执行结果" show-overflow-tooltip></el-table-column>
+              </el-table>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="任务路径" align="center" prop="taskPath" :show-overflow-tooltip="true"/>
+        <el-table-column label="任务名称" align="center" prop="taskName" :show-overflow-tooltip="true"/>
+        <el-table-column label="cron表达式" align="center" prop="cron" :show-overflow-tooltip="true" width="130"/>
+        <el-table-column label="cron描述" align="center" prop="cronDesc" :show-overflow-tooltip="true"/>
+        <el-table-column label="状态" align="center" prop="status" show-overflow-tooltip width="80">
+          <template slot-scope="scope">
+            <div>
+              <el-tag v-if="scope.row.status === 'STOP'" type="danger" effect="plain">已停止</el-tag>
+              <el-tag v-else type="success" effect="plain">已启动</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="下次执行时间" align="center" prop="nextRunTime" :show-overflow-tooltip="true" width="160"/>
+      </el-table>
+    </el-card>
+
   </div>
 </template>
 
@@ -88,9 +110,13 @@ export default {
   methods: {
     getList() {
       this.loading = true;
+      this.dataList = [];
       this.$http.get(`/api/v1/tresdin/schedule/task/list`)
         .then(res => {
-          this.dataList = res;
+          for (const item of res) {
+            item.children = [];
+            this.dataList.push(item);
+          }
         })
         .finally(() => {
           this.loading = false;
@@ -107,10 +133,34 @@ export default {
         this.getList();
       })
     },
+    expandChange(row, expandedRows) {
+      if (!expandedRows.map(item => item.id).includes(row.id)) {
+        // 控制收起时不加载数据
+        return;
+      }
+      this.$http.get(`/api/v1/tresdin/schedule/task/${row.id}/log/list`)
+        .then(res => {
+          row.children = res;
+        });
+    },
   }
 }
 </script>
 
-<style scoped>
 
+<style scoped lang="scss">
+::v-deep .el-card__header {
+  padding: 11px 15px;
+}
+
+::v-deep .el-card__body {
+  padding: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  align-items: center;
+}
 </style>
