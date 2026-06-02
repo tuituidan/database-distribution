@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_schedule_task_log", schema = "database_distribution")
 public class SysScheduleTaskLog implements IEntity<SysScheduleTaskLog, Long> {
 
+    private static final long serialVersionUID = 4056285341784038332L;
+
     @Id
     private Long id;
 

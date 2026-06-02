@@ -25,6 +25,8 @@ import lombok.experimental.Accessors;
 @Table(name = "sys_schedule_task", schema = "database_distribution")
 public class SysScheduleTask implements IEntity<SysScheduleTask, Long> {
 
+    private static final long serialVersionUID = -2545207529712224456L;
+
     @Id
     private Long id;
 
