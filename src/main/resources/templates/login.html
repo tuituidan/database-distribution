@@ -229,7 +229,7 @@
 
     <form id="loginForm" onclick="this.disabled=false" onsubmit="return handleSubmit()"
           method="POST"
-          th:action="${#request.getQueryString() != null ? #request.getRequestURL() + '?' + #request.getQueryString() : #request.getRequestURL()}">
+          th:action="${#request.getQueryString() != null ? '/login?' + #request.getQueryString() : '/login'}">
         <div class="form-group">
             <label class="form-label">用户名</label>
             <input type="text"
